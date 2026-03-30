@@ -1,11 +1,10 @@
-// src/app/produits/[id]/page.tsx
 "use client";
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
 import ProductCard from "../../../components/Product/ProductCard";
-import { useCart } from "../../../context/CartContext"; // <-- IMPORT DU CONTEXTE
+import { useCart } from "../../../context/CartContext";
 
 // Interfaces basées sur ton modèle
 interface Category {
@@ -27,7 +26,6 @@ export default function ProductDetailPage() {
   const params = useParams();
   const productId = params.id;
 
-  // <-- RÉCUPÉRATION DE LA FONCTION D'AJOUT DEPUIS LE CONTEXTE
   const { addToCart } = useCart(); 
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -67,7 +65,6 @@ export default function ProductDetailPage() {
     setQuantity(prev => Math.max(1, prev + change));
   };
 
-  // <-- MODIFICATION DE LA FONCTION HANDLE ADD TO CART
   const handleAddToCart = async () => {
     if (!product) return;
 
@@ -100,7 +97,6 @@ export default function ProductDetailPage() {
 
       {/* 2. MAIN SECTION */}
       <section className="py-20 md:py-20">
-        {/* ... (TOUT LE RESTE DU RENDU EST IDENTIQUE AU TIEN) ... */}
         <div className="max-w-[1542px] mx-auto px-4 md:px-12">
           
           <nav className="mb-12 text-xs uppercase tracking-widest text-stone-400">
@@ -272,7 +268,7 @@ export default function ProductDetailPage() {
                   <ProductCard key={related.id} product={related} />
                 ))
               ) : (
-                <p className="col-span-4 text-center text-stone-500 italic">D'autres créations arrivent bientôt...</p>
+                <p className="col-span-4 text-center text-stone-500 italic">D&apos;autres créations arrivent bientôt...</p>
               )}
             </div>
           </div>
