@@ -33,39 +33,43 @@ function ProductsContent() {
   const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
-    let url = `http://127.0.0.1:8000/api/products/?limit=500`;
-    
-    if (categoryFilter) url += `&category=${categoryFilter}`;
-    if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
-    if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
+    const fetchProducts = async () => {
+      let url = `http://127.0.0.1:8000/api/products/?limit=500`;
+      
+      if (categoryFilter) url += `&category=${categoryFilter}`;
+      if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
+      if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
 
-    setLoading(true);
-    fetch(url)
-      .then(res => {
+      setLoading(true);
+      try {
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Erreur réseau');
-        return res.json();
-      })
-      .then(data => {
-        const items = data.results || data; 
-        
+        const data = await res.json();
+        const items = data.results || data;
+
         setAllFetchedProducts(items);
         setCurrentPage(1);
         setVisibleProducts(items.slice(0, PRODUCTS_PER_PAGE));
         setHasMore(items.length > PRODUCTS_PER_PAGE);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Erreur Fetch API:", err);
         setLoading(false);
-      });
+      }
+    };
+
+    fetchProducts();
   }, [categoryFilter, minPrice, maxPrice]);
 
   useEffect(() => {
-    if (currentPage > 1) {
-      const endIndex = currentPage * PRODUCTS_PER_PAGE;
-      setVisibleProducts(allFetchedProducts.slice(0, endIndex));
-      setHasMore(endIndex < allFetchedProducts.length);
-    }
+    const updateVisible = () => {
+      if (currentPage > 1) {
+        const endIndex = currentPage * PRODUCTS_PER_PAGE;
+        setVisibleProducts(allFetchedProducts.slice(0, endIndex));
+        setHasMore(endIndex < allFetchedProducts.length);
+      }
+    };
+    updateVisible();
   }, [currentPage, allFetchedProducts]);
 
   const handleFilterSubmit = (e: React.FormEvent) => {
@@ -211,7 +215,6 @@ function ProductsContent() {
   );
 }
 
-// ✅ Page principale : wraps ProductsContent dans un Suspense
 export default function ProductsPage() {
   return (
     <Suspense fallback={<div className="bg-[#EFDDD1] min-h-screen flex items-center justify-center text-stone-600">Chargement...</div>}>
