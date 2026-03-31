@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 
@@ -17,70 +17,63 @@ interface Product {
 
 const PRODUCTS_PER_PAGE = 16;
 
-export default function ProductsPage() {
+function ProductsContent() {
   const searchParams = useSearchParams();
   const categoryFilter = searchParams.get('category');
 
-  // --- ÉTATS ---
-  // Produits
   const [allFetchedProducts, setAllFetchedProducts] = useState<Product[]>([]);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   
-  // Filtres
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
   
-  // Pagination Client
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
-  // --- 1. FETCH DES DONNÉES (Se déclenche si filtres ou catégorie changent) ---
   useEffect(() => {
-    // On demande un maximum de produits d'un coup pour paginer côté front
-    let url = `http://127.0.0.1:8000/api/products/?limit=500`;
-    
-    if (categoryFilter) url += `&category=${categoryFilter}`;
-    if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
-    if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
+    const fetchProducts = async () => {
+      let url = `http://127.0.0.1:8000/api/products/?limit=500`;
+      
+      if (categoryFilter) url += `&category=${categoryFilter}`;
+      if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
+      if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
 
-    setLoading(true);
-    fetch(url)
-      .then(res => {
+      setLoading(true);
+      try {
+        const res = await fetch(url);
         if (!res.ok) throw new Error('Erreur réseau');
-        return res.json();
-      })
-      .then(data => {
-        // Gère les deux formats d'API (liste simple ou objet paginé de Django)
-        const items = data.results || data; 
-        
+        const data = await res.json();
+        const items = data.results || data;
+
         setAllFetchedProducts(items);
-        setCurrentPage(1); // On reset la page à 1 quand on change de filtre
+        setCurrentPage(1);
         setVisibleProducts(items.slice(0, PRODUCTS_PER_PAGE));
         setHasMore(items.length > PRODUCTS_PER_PAGE);
         setLoading(false);
-      })
-      .catch(err => {
+      } catch (err) {
         console.error("Erreur Fetch API:", err);
         setLoading(false);
-      });
-  }, [categoryFilter, minPrice, maxPrice]); // Ne dépend plus de "page" !
+      }
+    };
 
-  // --- 2. GESTION DE LA PAGINATION CÔTÉ CLIENT ---
+    fetchProducts();
+  }, [categoryFilter, minPrice, maxPrice]);
+
   useEffect(() => {
-    if (currentPage > 1) {
-      const endIndex = currentPage * PRODUCTS_PER_PAGE;
-      setVisibleProducts(allFetchedProducts.slice(0, endIndex));
-      setHasMore(endIndex < allFetchedProducts.length);
-    }
+    const updateVisible = () => {
+      if (currentPage > 1) {
+        const endIndex = currentPage * PRODUCTS_PER_PAGE;
+        setVisibleProducts(allFetchedProducts.slice(0, endIndex));
+        setHasMore(endIndex < allFetchedProducts.length);
+      }
+    };
+    updateVisible();
   }, [currentPage, allFetchedProducts]);
 
-  // --- HANDLERS ---
   const handleFilterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Le submit va déclencher un re-render qui relancera le Fetch useEffect
-    // car on a mis à jour minPrice et maxPrice dans les inputs
   };
 
   const handleResetFilters = () => {
@@ -92,7 +85,6 @@ export default function ProductsPage() {
     setCurrentPage(prev => prev + 1);
   };
 
-  // --- TITRE DYNAMIQUE ---
   const getPageTitle = () => {
     if (categoryFilter === 'parfumees') return 'Bougies Parfumées';
     if (categoryFilter === 'moulees') return 'Bougies Moulées';
@@ -104,13 +96,11 @@ export default function ProductsPage() {
   return (
     <main className="bg-[#EFDDD1] min-h-screen relative overflow-hidden">
       
-      {/* Espace pour la navbar absolue (depuis le layout) */}
       <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
 
       <section className="px-4 md:px-12 py-20 relative">
         <div className="max-w-[1542px] mx-auto">
           
-          {/* --- EN-TÊTE --- */}
           <div className="text-center mb-12">
             <h1 className="font-serif text-[35px] md:text-[55px] text-stone-900 uppercase tracking-widest mb-6">
               {getPageTitle()}
@@ -119,7 +109,6 @@ export default function ProductsPage() {
               Des créations uniques pour une ambiance chaleureuse.
             </p>
 
-            {/* MENU CATÉGORIES */}
             <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 text-xs md:text-sm uppercase tracking-[0.15em] font-medium text-stone-500 mx-auto max-w-5xl">
               <Link href="/produits" className={`${!categoryFilter ? 'text-stone-900 border-b-2 border-stone-900' : 'hover:text-stone-900'} pb-2 transition-colors`}>
                 Tout voir
@@ -139,7 +128,6 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* --- FORMULAIRE FILTRES --- */}
           <div className="mb-10">
             <div className="flex justify-between items-center px-2 pb-4 border-b border-stone-300/50">
               <button 
@@ -155,7 +143,6 @@ export default function ProductsPage() {
               </span>
             </div>
 
-            {/* Panneau de filtres */}
             <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-[#FDFBF7] rounded-lg shadow-sm ${isFilterOpen ? 'max-h-64 mt-4 p-6 opacity-100' : 'max-h-0 opacity-0'}`}>
               <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl">
                 <div>
@@ -190,7 +177,6 @@ export default function ProductsPage() {
             </div>
           </div>
 
-          {/* --- GRILLE PRODUITS (16 Max) --- */}
           {loading ? (
             <div className="py-24 text-center text-stone-600">Chargement du catalogue...</div>
           ) : (
@@ -210,7 +196,6 @@ export default function ProductsPage() {
             </div>
           )}
 
-          {/* === BOUTON LOAD MORE === */}
           {hasMore && !loading && (
             <div className="mt-20 flex justify-center">
               <button 
@@ -225,8 +210,15 @@ export default function ProductsPage() {
         </div>
       </section>
 
-      {/* --- RÉASSURANCE --- */}
       <ReassuranceSection />
     </main>
+  );
+}
+
+export default function ProductsPage() {
+  return (
+    <Suspense fallback={<div className="bg-[#EFDDD1] min-h-screen flex items-center justify-center text-stone-600">Chargement...</div>}>
+      <ProductsContent />
+    </Suspense>
   );
 }

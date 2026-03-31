@@ -12,7 +12,7 @@ export default function HeroSection() {
 
       <div className="relative z-10 text-center text-white px-4 animate-fade-in-up">
         <h1 className="font-serif italic text-5xl md:text-7xl mb-6 drop-shadow-lg">
-          L'art de l'ambiance
+          L&apos;art de l&apos;ambiance
         </h1>
         <p className="uppercase tracking-[0.3em] text-xs md:text-sm font-light mb-10 drop-shadow-md">
           Bougies Artisanales & Parfumées
