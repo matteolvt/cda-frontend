@@ -1,7 +1,6 @@
 "use client";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
-
-const API = "http://localhost:8000/api";
+import { API_URL } from "@/lib/api";
 
 interface Product {
   id: number;
@@ -24,6 +23,7 @@ interface CartContextType {
   addToCart: (productId: number, quantity: number, customName?: string, customScent?: string) => Promise<void>;
   updateQuantity: (itemId: number, delta: number) => Promise<void>;
   removeItem: (itemId: number) => Promise<void>;
+  isLogged: boolean;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -31,14 +31,25 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isClient, setIsClient] = useState(false);
+  const [isLogged, setIsLogged] = useState(false);
+
+  const getHeaders = () => {
+    const token = localStorage.getItem("access_token");
+    return {
+      "Content-Type": "application/json",
+      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
+    };
+  };
 
   useEffect(() => {
     setIsClient(true);
+    const token = localStorage.getItem("access_token");
+    setIsLogged(!!token);
+
     try {
       const saved = localStorage.getItem('shads_cart');
       if (saved) setCart(JSON.parse(saved));
-    } catch {
-    }
+    } catch {}
   }, []);
 
   useEffect(() => {
@@ -48,7 +59,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (!isClient) return;
-    fetch(`${API}/cart/`, { credentials: 'include' })
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
+    fetch(`${API_URL}/cart/`, { headers: getHeaders() })
       .then((res) => {
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         return res.json();
@@ -69,11 +83,16 @@ export function CartProvider({ children }: { children: ReactNode }) {
     customName?: string,
     customScent?: string
   ) => {
+    const token = localStorage.getItem("access_token");
+    if (!token) {
+      alert("🔒 Vous devez être connecté pour ajouter au panier.");
+      return;
+    }
+
     try {
-      const res = await fetch(`${API}/cart/add/`, {
+      const res = await fetch(`${API_URL}/cart/add/`, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        headers: getHeaders(),
         body: JSON.stringify({
           product_id: productId,
           quantity,
@@ -81,12 +100,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
           custom_scent: customScent,
         }),
       });
+
       if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
       const updatedCart = await res.json();
       const items = Array.isArray(updatedCart) ? updatedCart : [];
       setCart(items);
       localStorage.setItem('shads_cart', JSON.stringify(items));
-      alert("Produit ajouté au panier !");
+      alert("✅ Produit ajouté au panier !");
     } catch (error) {
       console.error("Erreur ajout panier:", error);
     }
@@ -101,10 +121,9 @@ export function CartProvider({ children }: { children: ReactNode }) {
       )
     );
     try {
-      const res = await fetch(`${API}/cart/update/${itemId}/`, {
+      const res = await fetch(`${API_URL}/cart/update/${itemId}/`, {
         method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        credentials: 'include',
+        headers: getHeaders(),
         body: JSON.stringify({ delta }),
       });
       if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
@@ -116,36 +135,18 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
     } catch (error) {
       console.error("Erreur mise à jour:", error);
-      fetch(`${API}/cart/`, { credentials: 'include' })
-        .then((res) => res.json())
-        .then((data) => {
-          const items = Array.isArray(data) ? data : [];
-          if (items.length > 0) {
-            setCart(items);
-            localStorage.setItem('shads_cart', JSON.stringify(items));
-          }
-        });
     }
   };
 
   const removeItem = async (itemId: number) => {
     setCart((prev) => prev.filter((item) => item.id !== itemId));
     try {
-      await fetch(`${API}/cart/remove/${itemId}/`, {
+      await fetch(`${API_URL}/cart/remove/${itemId}/`, {
         method: "DELETE",
-        credentials: 'include',
+        headers: getHeaders(),
       });
     } catch (error) {
       console.error("Erreur suppression:", error);
-      fetch(`${API}/cart/`, { credentials: 'include' })
-        .then((res) => res.json())
-        .then((data) => {
-          const items = Array.isArray(data) ? data : [];
-          if (items.length > 0) {
-            setCart(items);
-            localStorage.setItem('shads_cart', JSON.stringify(items));
-          }
-        });
     }
   };
 
@@ -155,7 +156,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <CartContext.Provider value={{ cart, total, addToCart, updateQuantity, removeItem }}>
+    <CartContext.Provider value={{ cart, total, addToCart, updateQuantity, removeItem, isLogged }}>
       {children}
     </CartContext.Provider>
   );

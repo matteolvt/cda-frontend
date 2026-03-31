@@ -1,27 +1,34 @@
-const API_URL = "http://localhost:8000/api";
+const API_URL = "https://backcda-api.onrender.com/api";
 
 export const authService = {
   // Inscription
   register: async (userData: any) => {
-    const res = await fetch(`${API_URL}/register/`, {
+    const res = await fetch(`${API_URL}/auth/register/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
-    if (!res.ok) throw new Error("Erreur lors de l'inscription");
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => null);
+      throw new Error(errorData?.detail || "Erreur lors de l'inscription");
+    }
     return res.json();
   },
 
   // Connexion
   login: async (credentials: any) => {
-    const res = await fetch(`${API_URL}/login/`, {
+    const res = await fetch(`${API_URL}/auth/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
+    
     if (!res.ok) throw new Error("Email ou mot de passe incorrect");
+    
     const data = await res.json();
     
+    // On sauvegarde les tokens
     localStorage.setItem("access_token", data.access);
     localStorage.setItem("refresh_token", data.refresh);
     
