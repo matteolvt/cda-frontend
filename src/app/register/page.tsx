@@ -9,14 +9,11 @@ import { authService } from "@/services/auth";
 export default function RegisterPage() {
   const router = useRouter();
 
-  // États du formulaire
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
-  
-  // États de l'interface
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -40,11 +37,10 @@ export default function RegisterPage() {
         password,
       });
 
-      // Si l'inscription réussit, on redirige vers le login
       alert("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
       router.push("/login");
-    } catch (err: any) {
-      setError(err.message || "Une erreur est survenue lors de l'inscription.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
     } finally {
       setIsLoading(false);
     }
@@ -62,11 +58,10 @@ export default function RegisterPage() {
               Inscription
             </h1>
             <p className="text-stone-500 text-xs uppercase tracking-widest font-light">
-              Rejoignez l'univers Shad's Candle
+              Rejoignez l&apos;univers Shad&apos;s Candle
             </p>
           </div>
 
-          {/* Affichage des erreurs globales de l'API */}
           {error && (
             <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-xs text-center uppercase tracking-wider">
               {error}
@@ -118,7 +113,7 @@ export default function RegisterPage() {
               <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
                 Mot de passe
               </label>
-              <div className="relative group-password">
+              <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
                   required
@@ -127,8 +122,6 @@ export default function RegisterPage() {
                   placeholder="Votre mot de passe"
                   className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
                 />
-                
-                {/* Bouton Oeil*/}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
@@ -152,7 +145,7 @@ export default function RegisterPage() {
                 className="mt-1 accent-stone-900"
               />
               <label className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-wider">
-                J'accepte les conditions d'utilisation et la politique de confidentialité.
+                J&apos;accepte les conditions d&apos;utilisation et la politique de confidentialité.
               </label>
             </div>
 
@@ -167,7 +160,7 @@ export default function RegisterPage() {
 
           <div className="mt-12 pt-8 border-t border-stone-100 text-center">
             <p className="text-stone-400 text-[11px] uppercase tracking-widest mb-4">
-              Vous avez déjà un compte ?
+              Vous avez déjà un compte&nbsp;?
             </p>
             <Link
               href="/login"

@@ -9,11 +9,8 @@ import { authService } from "@/services/auth";
 export default function LoginPage() {
   const router = useRouter();
 
-  // États du formulaire
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  
-  // États de l'interface
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -24,14 +21,11 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // Appel à ton API Django via le service d'authentification
       await authService.login({ email, password });
-      
-      // Si la connexion réussit, on redirige vers l'accueil
       router.push("/");
       router.refresh();
-    } catch (err: any) {
-      setError(err.message || "Identifiants incorrects.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Identifiants incorrects.");
     } finally {
       setIsLoading(false);
     }
@@ -55,7 +49,6 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             
-            {/* Affichage des erreurs */}
             {error && (
               <div className="bg-red-50 text-red-600 p-4 text-[10px] uppercase tracking-widest text-center border border-red-100 italic">
                 {error}
@@ -82,8 +75,6 @@ export default function LoginPage() {
               <label htmlFor="inputPassword" className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
                 Mot de passe
               </label>
-
-              {/* Conteneur relatif pour l'oeil */}
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
@@ -94,8 +85,6 @@ export default function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-4 text-sm outline-none focus:border-stone-900 transition-colors font-light"
                 />
-
-                {/* Bouton Oeil */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
