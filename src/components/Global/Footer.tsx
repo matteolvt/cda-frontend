@@ -65,7 +65,7 @@ export default function Footer() {
 
         {/* Copyright */}
         <div className="text-center text-[10px] md:text-xs text-stone-400 flex flex-col md:flex-row justify-center gap-2 md:gap-12">
-          <p>© Shad’s Candle – Tous droits réservés 2025</p>
+          <p>© Shad’s Candle – Tous droits réservés 2026</p>
           <p>Site réalisé par Studio 19.21</p>
         </div>
       </div>
