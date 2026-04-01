@@ -1,24 +1,19 @@
-// src/app/contact/page.tsx
 "use client";
 
 import ReassuranceSection from "../../components/Global/ReassuranceSection";
 
 export default function ContactPage() {
   
-  // Fonction qui s'exécutera quand on clique sur "J'envoie ma requête"
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault(); // Empêche le rechargement classique de la page
+    e.preventDefault();
     
-    // Récupération des données du formulaire
     const formData = new FormData(e.currentTarget);
     const data = Object.fromEntries(formData.entries());
     
     console.log("Données du formulaire prêtes à être envoyées :", data);
     alert("Merci pour votre message ! Nous vous répondrons très vite.");
     
-    // Ici, plus tard, on fera le fetch() vers ton API Django pour envoyer l'email !
     
-    // Optionnel : vider le formulaire après envoi
     e.currentTarget.reset();
   };
 
@@ -30,7 +25,7 @@ export default function ContactPage() {
       {/* === 2. SECTION FORMULAIRE === */}
       <section className="bg-[#EFDDD1] w-full py-20 min-h-[calc(100vh-140px-300px)]">
         
-        {/* Conteneur formulaire (étroit) */}
+        {/* Conteneur formulaire */}
         <div className="max-w-[800px] mx-auto px-4 md:px-0">
           
           <div className="text-center mb-16">

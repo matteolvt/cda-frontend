@@ -1,37 +1,82 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🕯️ Shad's Candle — Frontend
 
-## Getting Started
+Application e-commerce de bougies artisanales, réalisée dans le cadre d'un projet de titre professionnel (CDA). Le frontend consomme une API REST Django pour afficher, filtrer et commander des produits.
 
-First, run the development server:
+🔗 **Démo live** : [cda-frontend-eta.vercel.app](https://cda-frontend-eta.vercel.app)
+
+---
+
+## 🧱 Stack technique
+
+| Technologie                                   | Rôle                         |
+| --------------------------------------------- | ---------------------------- |
+| [Next.js 16](https://nextjs.org/)             | Framework React (App Router) |
+| [React 19](https://react.dev/)                | UI                           |
+| [TypeScript](https://www.typescriptlang.org/) | Typage statique              |
+| [Tailwind CSS 4](https://tailwindcss.com/)    | Styling                      |
+| [Swiper](https://swiperjs.com/)               | Carrousel produits           |
+| [Axios](https://axios-http.com/)              | Requêtes HTTP                |
+| [ESLint](https://eslint.org/)                 | Linting                      |
+| [Vercel](https://vercel.com/)                 | Déploiement                  |
+
+---
+
+## 🔗 Repos liés
+
+- **Backend (Django REST Framework)** : [github.com/ShayyNwE/CDA-backend](https://github.com/ShayyNwE/CDA-backend)
+
+---
+
+## 🚀 Lancer le projet en local
+
+### Prérequis
+
+- Node.js 20+
+- Le backend Django lancé sur `http://127.0.0.1:8000`
+
+### Installation
 
 ```bash
+git clone https://github.com/matteolvt/cda-frontend.git
+cd cda-frontend
+npm install
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+L'app est disponible sur [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🗂️ Structure du projet
 
-## Learn More
+```
+src/
+├── app/                  # Pages (App Router Next.js)
+│   ├── page.tsx          # Homepage
+│   ├── produits/         # Catalogue & fiche produit
+│   ├── panier/           # Panier
+│   └── a-propos/         # Page À propos
+├── components/
+│   ├── Global/           # Navbar, Footer, Réassurance
+│   ├── Homepage/         # Sections homepage
+│   └── Product/          # ProductCard
+```
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## ⚙️ CI/CD
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Pipeline GitHub Actions sur les branches `main` et `preprod` :
 
-## Deploy on Vercel
+- **Lint** — ESLint
+- **Type check** — TypeScript (`tsc --noEmit`)
+- **Build** — `next build`
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Le déploiement est géré automatiquement par **Vercel** à chaque merge.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
-# cda-frontend
+---
+
+## 👥 Auteurs
+
+- [@matteolvt](https://github.com/matteolvt)
+- [@ShayyNwE](https://github.com/ShayyNwE)
