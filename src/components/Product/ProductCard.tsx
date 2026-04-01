@@ -1,37 +1,31 @@
-// src/components/Product/ProductCard.tsx
-"use client"; // Indispensable car on va utiliser un hook (useCart)
+"use client";
 
 import Link from 'next/link';
-import { useCart } from '../../context/CartContext'; // Importe ton hook de panier
+import { useCart } from '../../context/CartContext';
 
 interface Product {
   id: number;
   name: string;
   price: number;
   image?: string;
-  is_customizable?: number; // On l'ajoute au type si besoin de vérifier
+  is_customizable?: number;
 }
 
 export default function ProductCard({ product }: { product: Product }) {
-  const { addToCart } = useCart(); // Récupère la fonction d'ajout
+  const { addToCart } = useCart();
   
-  // Formatage du prix (ex: 2999 -> 29,99)
   const formattedPrice = (product.price / 100).toFixed(2).replace('.', ',');
 
   const handleAddToCart = async (e: React.MouseEvent) => {
-    e.preventDefault(); // Empêche le clic de déclencher le Link au-dessus
-    
-    // Si c'est un produit personnalisable, on pourrait rediriger vers la page produit
-    // pour forcer l'utilisateur à choisir ses options.
+    e.preventDefault();
+
     if (product.is_customizable === 1) {
        alert("Ce produit nécessite une personnalisation. Veuillez cliquer sur la fiche produit.");
        return;
     }
 
     try {
-      // Ajout au panier avec quantité 1, sans personnalisation
       await addToCart(product.id, 1);
-      // Le alert("Produit ajouté") est déjà géré dans le CartContext !
     } catch (error) {
       console.error("Erreur lors de l'ajout au panier:", error);
     }

@@ -32,25 +32,20 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([]);
   const [isClient, setIsClient] = useState(false);
 
-  // Étape 1 : détection client + chargement localStorage
   useEffect(() => {
     setIsClient(true);
     try {
       const saved = localStorage.getItem('shads_cart');
       if (saved) setCart(JSON.parse(saved));
     } catch {
-      // ignore
     }
   }, []);
 
-  // Étape 2 : sync localStorage à chaque changement du panier
   useEffect(() => {
     if (!isClient) return;
     localStorage.setItem('shads_cart', JSON.stringify(cart));
   }, [cart, isClient]);
 
-  // Étape 3 : chargement depuis Django (source de vérité)
-  // On n'écrase le localStorage QUE si Django retourne des items
   useEffect(() => {
     if (!isClient) return;
     fetch(`${API}/cart/`, { credentials: 'include' })
@@ -68,7 +63,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .catch((err) => console.error("Erreur chargement panier:", err));
   }, [isClient]);
 
-  // AJOUTER AU PANIER
   const addToCart = async (
     productId: number,
     quantity: number,
@@ -98,7 +92,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // MODIFIER LA QUANTITÉ
   const updateQuantity = async (itemId: number, delta: number) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -135,7 +128,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // SUPPRIMER DU PANIER
   const removeItem = async (itemId: number) => {
     setCart((prev) => prev.filter((item) => item.id !== itemId));
     try {
