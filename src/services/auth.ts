@@ -1,41 +1,46 @@
-const API_URL = "https://backcda-api.onrender.com/api";
+import { API_URL } from "../lib/api";
+
+interface RegisterData {
+  first_name: string;
+  last_name: string;
+  email: string;
+  password: string;
+}
+
+interface LoginData {
+  email: string;
+  password: string;
+}
+
+interface AuthResponse {
+  access: string;
+  refresh: string;
+}
 
 export const authService = {
-  // Inscription
-  register: async (userData: any) => {
-    const res = await fetch(`${API_URL}/auth/register/`, {
+  register: async (userData: RegisterData): Promise<AuthResponse> => {
+    const res = await fetch(`${API_URL}/register/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
     });
-    
-    if (!res.ok) {
-      const errorData = await res.json().catch(() => null);
-      throw new Error(errorData?.detail || "Erreur lors de l'inscription");
-    }
+    if (!res.ok) throw new Error("Erreur lors de l'inscription");
     return res.json();
   },
 
-  // Connexion
-  login: async (credentials: any) => {
-    const res = await fetch(`${API_URL}/auth/login/`, {
+  login: async (credentials: LoginData): Promise<AuthResponse> => {
+    const res = await fetch(`${API_URL}/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
     });
-    
     if (!res.ok) throw new Error("Email ou mot de passe incorrect");
-    
-    const data = await res.json();
-    
-    // On sauvegarde les tokens
+    const data: AuthResponse = await res.json();
     localStorage.setItem("access_token", data.access);
     localStorage.setItem("refresh_token", data.refresh);
-    
     return data;
   },
 
-  // Déconnexion
   logout: () => {
     localStorage.removeItem("access_token");
     localStorage.removeItem("refresh_token");
