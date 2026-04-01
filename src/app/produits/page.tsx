@@ -3,6 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { API_URL } from '@/lib/api';
 
 import ProductCard from '../../components/Product/ProductCard';
 import ReassuranceSection from '../../components/Global/ReassuranceSection';
@@ -12,7 +13,7 @@ interface Product {
   name: string;
   price: number;
   image?: string;
-  category_id?: number; 
+  category_id?: number;
 }
 
 const PRODUCTS_PER_PAGE = 16;
@@ -24,18 +25,18 @@ function ProductsContent() {
   const [allFetchedProducts, setAllFetchedProducts] = useState<Product[]>([]);
   const [visibleProducts, setVisibleProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [minPrice, setMinPrice] = useState<string>('');
   const [maxPrice, setMaxPrice] = useState<string>('');
-  
+
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
 
   useEffect(() => {
     const fetchProducts = async () => {
-      let url = `http://127.0.0.1:8000/api/products/?limit=500`;
-      
+      let url = `${API_URL}/products/?limit=500`;
+
       if (categoryFilter) url += `&category=${categoryFilter}`;
       if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
       if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
@@ -95,12 +96,12 @@ function ProductsContent() {
 
   return (
     <main className="bg-[#EFDDD1] min-h-screen relative overflow-hidden">
-      
+
       <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
 
       <section className="px-4 md:px-12 py-20 relative">
         <div className="max-w-[1542px] mx-auto">
-          
+
           <div className="text-center mb-12">
             <h1 className="font-serif text-[35px] md:text-[55px] text-stone-900 uppercase tracking-widest mb-6">
               {getPageTitle()}
@@ -130,8 +131,8 @@ function ProductsContent() {
 
           <div className="mb-10">
             <div className="flex justify-between items-center px-2 pb-4 border-b border-stone-300/50">
-              <button 
-                onClick={() => setIsFilterOpen(!isFilterOpen)} 
+              <button
+                onClick={() => setIsFilterOpen(!isFilterOpen)}
                 className="flex items-center gap-3 group hover:opacity-70 transition-opacity text-stone-900 cursor-pointer"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
@@ -148,19 +149,19 @@ function ProductsContent() {
                 <div>
                   <h4 className="font-serif text-stone-900 mb-4 uppercase text-xs tracking-widest">Prix (€)</h4>
                   <div className="flex gap-4 items-center">
-                    <input 
-                      type="number" 
-                      placeholder="Min" 
-                      value={minPrice} 
-                      onChange={(e) => setMinPrice(e.target.value)} 
+                    <input
+                      type="number"
+                      placeholder="Min"
+                      value={minPrice}
+                      onChange={(e) => setMinPrice(e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 text-sm outline-none focus:border-stone-500"
                     />
                     <span className="text-stone-400">-</span>
-                    <input 
-                      type="number" 
-                      placeholder="Max" 
-                      value={maxPrice} 
-                      onChange={(e) => setMaxPrice(e.target.value)} 
+                    <input
+                      type="number"
+                      placeholder="Max"
+                      value={maxPrice}
+                      onChange={(e) => setMaxPrice(e.target.value)}
                       className="w-full bg-white border border-stone-200 p-2 text-sm outline-none focus:border-stone-500"
                     />
                   </div>
@@ -198,8 +199,8 @@ function ProductsContent() {
 
           {hasMore && !loading && (
             <div className="mt-20 flex justify-center">
-              <button 
-                onClick={handleLoadMore} 
+              <button
+                onClick={handleLoadMore}
                 className="text-stone-900 text-xs uppercase tracking-widest border-b border-stone-900 pb-1 hover:opacity-60 transition-all duration-300"
               >
                 Voir plus de produits

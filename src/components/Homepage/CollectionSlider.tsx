@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Navigation } from "swiper/modules";
+import { API_URL } from "@/lib/api";
 
 import "swiper/css";
 import "swiper/css/navigation";
@@ -20,7 +21,7 @@ export default function CollectionSlider() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/api/products/slider/")
+    fetch(`${API_URL}/products/slider/`)
       .then((res) => res.json())
       .then((data) => {
         setProducts(data);
@@ -61,10 +62,10 @@ export default function CollectionSlider() {
                     <div className="bg-white flex flex-col shadow-sm group-hover/card:shadow-xl transition-shadow duration-300">
                       <div className="relative aspect-[4/5] overflow-hidden bg-stone-100">
                         <Link href={`/produits/${product.id}`}>
-                          <img 
-                            src={product.image} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700" 
+                          <img
+                            src={product.image}
+                            alt={product.name}
+                            className="w-full h-full object-cover group-hover/card:scale-105 transition-transform duration-700"
                           />
                         </Link>
                       </div>
@@ -81,7 +82,7 @@ export default function CollectionSlider() {
               ))}
             </Swiper>
           )}
-          
+
           <div className="swiper-button-next !text-stone-900 !scale-50 font-bold z-50 hidden md:block !right-2 transition-opacity duration-300 [&.swiper-button-disabled]:!opacity-0 [&.swiper-button-disabled]:!pointer-events-none"></div>
           <div className="swiper-button-prev !text-stone-900 !scale-50 font-bold z-50 hidden md:block !left-2 md:!left-6 transition-opacity duration-300 [&.swiper-button-disabled]:!opacity-0 [&.swiper-button-disabled]:!pointer-events-none"></div>
         </div>
