@@ -19,7 +19,7 @@ interface AuthResponse {
 
 export const authService = {
   register: async (userData: RegisterData): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/register/`, {
+    const res = await fetch(`${API_URL}/auth/register/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(userData),
@@ -29,7 +29,7 @@ export const authService = {
   },
 
   login: async (credentials: LoginData): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/login/`, {
+    const res = await fetch(`${API_URL}/auth/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
