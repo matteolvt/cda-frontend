@@ -17,6 +17,13 @@ interface CartItem {
   custom_scent?: string;
 }
 
+interface GuestCartItem {
+  product_id: number;
+  quantity: number;
+  custom_name?: string;
+  custom_scent?: string;
+}
+
 interface CartContextType {
   cart: CartItem[];
   total: number;
@@ -41,6 +48,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     };
   };
 
+  // ─── INIT ────────────────────────────────────────────────────
   useEffect(() => {
     setIsClient(true);
     const token = localStorage.getItem("access_token");
@@ -52,11 +60,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     } catch {}
   }, []);
 
+  // ─── SYNC localStorage ───────────────────────────────────────
   useEffect(() => {
     if (!isClient) return;
     localStorage.setItem('shads_cart', JSON.stringify(cart));
   }, [cart, isClient]);
 
+  // ─── CHARGEMENT PANIER (connecté uniquement) ─────────────────
   useEffect(() => {
     if (!isClient) return;
     const token = localStorage.getItem("access_token");
@@ -77,6 +87,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
       .catch((err) => console.error("Erreur chargement panier:", err));
   }, [isClient]);
 
+  // ─── AJOUTER AU PANIER ───────────────────────────────────────
   const addToCart = async (
     productId: number,
     quantity: number,
@@ -84,34 +95,70 @@ export function CartProvider({ children }: { children: ReactNode }) {
     customScent?: string
   ) => {
     const token = localStorage.getItem("access_token");
-    if (!token) {
-      alert("🔒 Vous devez être connecté pour ajouter au panier.");
+
+    // ✅ Connecté → appel API Django
+    if (token) {
+      try {
+        const res = await fetch(`${API_URL}/cart/add/`, {
+          method: "POST",
+          headers: getHeaders(),
+          body: JSON.stringify({
+            product_id: productId,
+            quantity,
+            custom_name: customName,
+            custom_scent: customScent,
+          }),
+        });
+        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
+        const updatedCart = await res.json();
+        const items = Array.isArray(updatedCart) ? updatedCart : [];
+        setCart(items);
+        localStorage.setItem('shads_cart', JSON.stringify(items));
+      } catch (error) {
+        console.error("Erreur ajout panier:", error);
+      }
       return;
     }
 
-    try {
-      const res = await fetch(`${API_URL}/cart/add/`, {
-        method: "POST",
-        headers: getHeaders(),
-        body: JSON.stringify({
-          product_id: productId,
+    // ✅ Non connecté → panier local avec vraies infos produit
+    const guestCart: GuestCartItem[] = JSON.parse(localStorage.getItem('shads_cart_guest') || '[]');
+    const existing = guestCart.find(item => item.product_id === productId);
+
+    if (existing) {
+      existing.quantity += quantity;
+      localStorage.setItem('shads_cart_guest', JSON.stringify(guestCart));
+      setCart(prev => prev.map(item =>
+        item.product.id === productId
+          ? { ...item, quantity: item.quantity + quantity }
+          : item
+      ));
+    } else {
+      guestCart.push({ product_id: productId, quantity, custom_name: customName, custom_scent: customScent });
+      localStorage.setItem('shads_cart_guest', JSON.stringify(guestCart));
+
+      // ✅ Fetch les vraies infos produit (route publique, pas besoin de token)
+      try {
+        const res = await fetch(`${API_URL}/products/${productId}/`);
+        const product = await res.json();
+        setCart(prev => [...prev, {
+          id: productId,
+          product: {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            image: product.image || "",
+          },
           quantity,
           custom_name: customName,
           custom_scent: customScent,
-        }),
-      });
-
-      if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-      const updatedCart = await res.json();
-      const items = Array.isArray(updatedCart) ? updatedCart : [];
-      setCart(items);
-      localStorage.setItem('shads_cart', JSON.stringify(items));
-      alert("✅ Produit ajouté au panier !");
-    } catch (error) {
-      console.error("Erreur ajout panier:", error);
+        }]);
+      } catch {
+        console.error("Impossible de récupérer les infos produit");
+      }
     }
   };
 
+  // ─── METTRE À JOUR LA QUANTITÉ ───────────────────────────────
   const updateQuantity = async (itemId: number, delta: number) => {
     setCart((prev) =>
       prev.map((item) =>
@@ -120,6 +167,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : item
       )
     );
+
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
     try {
       const res = await fetch(`${API_URL}/cart/update/${itemId}/`, {
         method: "PATCH",
@@ -138,8 +189,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // ─── SUPPRIMER UN ITEM ───────────────────────────────────────
   const removeItem = async (itemId: number) => {
     setCart((prev) => prev.filter((item) => item.id !== itemId));
+
+    const token = localStorage.getItem("access_token");
+    if (!token) return;
+
     try {
       await fetch(`${API_URL}/cart/remove/${itemId}/`, {
         method: "DELETE",
