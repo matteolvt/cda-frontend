@@ -6,7 +6,8 @@ import { authService } from "@/services/auth";
 import { API_URL } from "@/lib/api";
 
 interface User {
-  user_id: number;
+  user_id?: number;
+  id?: number;
   email: string;
   firstname: string;
   lastname: string;
@@ -51,10 +52,18 @@ export default function ProfilePage() {
         }
         
         const data = await res.json();
+        
+        console.log("🕵️ Données brutes reçues de Django :", data);
 
-        if (data.email) {
-          setUser(data);
+        // 🛡️ ON S'ADAPTE AUX DEUX FORMATS :
+        if (data.user) {
+          // Format 1 : Les données sont bien rangées dans "user"
+          setUser(data.user);
           setOrders(data.orders || []);
+        } else if (data.email) {
+          // Format 2 : Les données sont en vrac (anciennes routes Django)
+          setUser(data);
+          setOrders(data.orders || []); 
         } else {
           throw new Error("Format de réponse inattendu de l'API.");
         }
