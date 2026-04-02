@@ -74,6 +74,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
     fetch(`${API_URL}/cart/`, { headers: getHeaders() })
       .then((res) => {
+        // 🔑 MODIFICATION : Si le token est invalide, on le nettoie proprement
+        if (res.status === 401) {
+          localStorage.removeItem("access_token");
+          localStorage.removeItem("refresh_token");
+          setIsLogged(false);
+          throw new Error("Token expiré, passage en mode visiteur");
+        }
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         return res.json();
       })
@@ -109,6 +116,13 @@ export function CartProvider({ children }: { children: ReactNode }) {
             custom_scent: customScent,
           }),
         });
+        
+        if (res.status === 401) {
+          localStorage.removeItem("access_token");
+          setIsLogged(false);
+          throw new Error("Token expiré");
+        }
+        
         if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
         const updatedCart = await res.json();
         const items = Array.isArray(updatedCart) ? updatedCart : [];
@@ -136,7 +150,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
       guestCart.push({ product_id: productId, quantity, custom_name: customName, custom_scent: customScent });
       localStorage.setItem('shads_cart_guest', JSON.stringify(guestCart));
 
-      // ✅ Fetch les vraies infos produit (route publique, pas besoin de token)
       try {
         const res = await fetch(`${API_URL}/products/${productId}/`);
         const product = await res.json();
