@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
   const productImages = product?.image ? [product.image, product.image, product.image, product.image] : [];
 
   useEffect(() => {
-    fetch(`http://127.0.0.1:8000/api/products/?limit=500`)
+    fetch(`https://backcda-api.onrender.com/api/products/?limit=500`)
       .then(res => res.json())
       .then(data => {
         const items = data.results || data;
