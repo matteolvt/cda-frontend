@@ -1,8 +1,8 @@
 import { API_URL } from "../lib/api";
 
 interface RegisterData {
-  first_name: string;
-  last_name: string;
+  firstname: string;
+  lastname: string;
   email: string;
   password: string;
 }
