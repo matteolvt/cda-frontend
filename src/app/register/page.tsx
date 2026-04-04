@@ -27,18 +27,24 @@ export default function RegisterPage() {
       return;
     }
 
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{12,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Le mot de passe doit contenir au moins 12 caractères. Une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&#).");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
       await authService.register({
-        first_name: firstname,
-        last_name: lastname,
+        firstname,
+        lastname,
         email,
         password,
       });
 
-      alert("Compte créé avec succès ! Vous pouvez maintenant vous connecter.");
-      router.push("/login");
+      router.push("/");
+      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
     } finally {
@@ -117,6 +123,7 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  minLength={12}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Votre mot de passe"
@@ -134,6 +141,9 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+              <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-widest">
+                Min. 12 caractères. 1 majuscule, 1 chiffre, 1 caractère spécial.
+              </p>
             </div>
 
             <div className="flex items-start gap-3 py-2">
