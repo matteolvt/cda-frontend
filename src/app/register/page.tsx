@@ -1,14 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "@/services/auth";
 
 export default function RegisterPage() {
-  const router = useRouter();
-
+  const router = useRouter(); // Déclaration du router
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
@@ -37,14 +36,16 @@ export default function RegisterPage() {
 
     try {
       await authService.register({
-        first_name: firstname,
-        last_name: lastname,
+        firstname,
+        lastname,
         email,
         password,
       });
 
+      // Conservation de la version feature
       router.push("/");
       router.refresh();
+      
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
     } finally {
@@ -123,7 +124,7 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={12}
+                  minLength={12} // Conservation de la version feature
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Votre mot de passe"

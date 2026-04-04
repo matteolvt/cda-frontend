@@ -1,8 +1,8 @@
 import { API_URL } from "../lib/api";
 
 interface RegisterData {
-  first_name: string;
-  last_name: string;
+  firstname: string;
+  lastname: string;
   email: string;
   password: string;
 }
@@ -19,17 +19,20 @@ interface AuthResponse {
 
 export const authService = {
   register: async (userData: RegisterData): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/register/`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(userData),
-    });
-    if (!res.ok) throw new Error("Erreur lors de l'inscription");
-    return res.json();
-  },
+  const res = await fetch(`${API_URL}/auth/register/`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(userData),
+  });
+  if (!res.ok) throw new Error("Erreur lors de l'inscription");
+  const data: AuthResponse = await res.json();
+  localStorage.setItem("access_token", data.access);
+  localStorage.setItem("refresh_token", data.refresh);
+  return data;
+},
 
   login: async (credentials: LoginData): Promise<AuthResponse> => {
-    const res = await fetch(`${API_URL}/login/`, {
+    const res = await fetch(`${API_URL}/auth/login/`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(credentials),
