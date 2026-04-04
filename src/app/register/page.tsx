@@ -37,8 +37,8 @@ export default function RegisterPage() {
 
     try {
       await authService.register({
-        firstname,
-        lastname,
+        first_name: firstname,
+        last_name: lastname,
         email,
         password,
       });
