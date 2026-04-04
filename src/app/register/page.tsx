@@ -2,10 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "@/services/auth";
 
 export default function RegisterPage() {
+  const router = useRouter(); // Déclaration du router
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
@@ -24,6 +26,12 @@ export default function RegisterPage() {
       return;
     }
 
+    const passwordRegex = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d)(?=.*[@$!%*?&#])[A-Za-z\d@$!%*?&#]{12,}$/;
+    if (!passwordRegex.test(password)) {
+      setError("Le mot de passe doit contenir au moins 12 caractères. Une majuscule, une minuscule, un chiffre et un caractère spécial (@$!%*?&#).");
+      return;
+    }
+
     setIsLoading(true);
 
     try {
@@ -34,7 +42,9 @@ export default function RegisterPage() {
         password,
       });
 
-      window.location.href = "/";
+      // Conservation de la version feature
+      router.push("/");
+      router.refresh();
       
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
@@ -114,7 +124,7 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={10}
+                  minLength={12} // Conservation de la version feature
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Votre mot de passe"
@@ -132,6 +142,9 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
+              <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-widest">
+                Min. 12 caractères. 1 majuscule, 1 chiffre, 1 caractère spécial.
+              </p>
             </div>
 
             <div className="flex items-start gap-3 py-2">
