@@ -37,7 +37,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router = useRouter();
   const pathname = usePathname();
   const [authorized, setAuthorized] = useState(false);
-  const [adminEmail, setAdminEmail] = useState("");
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -56,7 +55,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         return;
       }
 
-      setAdminEmail(decoded.user_id);
+      // eslint-disable-next-line
       setAuthorized(true);
     } catch {
       router.push("/");
@@ -65,6 +64,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   // Ferme le menu mobile au changement de page
   useEffect(() => {
+    // eslint-disable-next-line
     setSidebarOpen(false);
   }, [pathname]);
 
@@ -76,7 +76,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
   if (!authorized) return null;
 
-  const SidebarContent = () => (
+  // On transforme le composant en une simple fonction qui retourne du JSX
+  const renderSidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Logo */}
       <div className="px-6 py-8 border-b border-gray-800">
@@ -117,10 +118,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           Retour au site
         </Link>
 
-        {/* <p className="text-[10px] text-gray-500 uppercase tracking-widest px-4 py-2 truncate">
-          {adminEmail}
-        </p> */}
-
         <button
           onClick={handleLogout}
           className="flex items-center gap-3 w-full px-4 py-3 text-xs uppercase tracking-widest text-gray-400 hover:bg-gray-800 hover:text-red-400 transition-colors rounded"
@@ -137,7 +134,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       {/* Sidebar Desktop */}
       <aside className="hidden lg:flex fixed top-0 left-0 h-full w-64 bg-gray-900 text-white flex-col z-50">
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Sidebar Mobile — Overlay */}
@@ -160,7 +157,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
           <X size={20} />
         </button>
-        <SidebarContent />
+        {renderSidebarContent()}
       </aside>
 
       {/* Contenu principal */}
