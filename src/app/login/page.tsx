@@ -29,24 +29,27 @@ export default function LoginPage() {
 
   return (
     <>
-      <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
+      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
+      <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-20 px-4">
-        <div className="bg-white w-full max-w-[500px] p-10 md:p-16 shadow-sm">
+      {/* Ajustement du padding vertical (py-10 au lieu de py-20 sur mobile) */}
+      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-10 md:py-20 px-4">
+        {/* Ajustement du padding intérieur de la carte sur mobile (p-6) */}
+        <div className="bg-white w-full max-w-[500px] p-6 sm:p-10 md:p-16 shadow-sm">
           
-          <div className="text-center mb-12">
-            <h1 className="font-serif text-3xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="font-serif text-2xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-3 md:mb-4">
               Connexion
             </h1>
-            <p className="text-stone-500 text-xs uppercase tracking-widest font-light">
+            <p className="text-stone-500 text-[10px] md:text-xs uppercase tracking-widest font-light">
               Ravi de vous revoir
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
             
             {error && (
-              <div className="bg-red-50 text-red-600 p-4 text-[10px] uppercase tracking-widest text-center border border-red-100 italic">
+              <div className="bg-red-50 text-red-600 p-3 md:p-4 text-[10px] uppercase tracking-widest text-center border border-red-100 italic">
                 {error}
               </div>
             )}
@@ -63,7 +66,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-4 text-sm outline-none focus:border-stone-900 transition-colors font-light"
+                className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors font-light"
               />
             </div>
 
@@ -79,7 +82,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-4 text-sm outline-none focus:border-stone-900 transition-colors font-light"
+                  className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors font-light"
                 />
                 <button
                   type="button"
@@ -98,18 +101,18 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-stone-900 text-white py-5 uppercase tracking-[0.3em] text-[11px] font-bold hover:bg-stone-800 transition-colors duration-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-stone-900 text-white py-4 md:py-5 uppercase tracking-[0.3em] text-[10px] md:text-[11px] font-bold hover:bg-stone-800 transition-colors duration-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {isLoading ? "Connexion..." : "Se connecter"}
             </button>
 
-            <div className="mt-12 pt-8 border-t border-stone-100 text-center">
-              <p className="text-stone-400 text-[11px] uppercase tracking-widest mb-4">
+            <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-stone-100 text-center">
+              <p className="text-stone-400 text-[10px] md:text-[11px] uppercase tracking-widest mb-3 md:mb-4">
                 Nouveau chez nous ?
               </p>
               <Link
                 href="/register"
-                className="inline-block text-stone-900 text-[11px] font-bold uppercase tracking-[0.2em] border-b border-stone-900 pb-1 hover:opacity-50 transition-opacity"
+                className="inline-block text-stone-900 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] border-b border-stone-900 pb-1 hover:opacity-50 transition-opacity"
               >
                 Créer un compte
               </Link>

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 
 interface Product {
-  id: number;
+  product_id: number;
   name: string;
   price: number;
   image?: string;
@@ -25,7 +25,8 @@ export default function ProductCard({ product }: { product: Product }) {
     }
 
     try {
-      await addToCart(product.id, 1);
+      // <-- Modification ici pour l'ajout au panier
+      await addToCart(product.product_id, 1);
     } catch (error) {
       console.error("Erreur lors de l'ajout au panier:", error);
     }
@@ -37,7 +38,8 @@ export default function ProductCard({ product }: { product: Product }) {
         
         {/* Conteneur Image */}
         <div className="relative aspect-[4/5] overflow-hidden bg-stone-100 flex items-center justify-center">
-          <Link href={`/produits/${product.id}`} className="absolute inset-0">
+          {/* <-- Modification ici dans le href */}
+          <Link href={`/produits/${product.product_id}`} className="absolute inset-0">
             {product.image ? (
               <img 
                 src={product.image} 
@@ -65,7 +67,8 @@ export default function ProductCard({ product }: { product: Product }) {
       {/* Informations Textuelles */}
       <div className="flex justify-between items-start mt-4 px-1">
         <h3 className="text-stone-900 font-nokora text-lg leading-tight truncate pr-4">
-          <Link href={`/produits/${product.id}`} className="hover:underline">
+          {/* <-- Modification ici dans le href */}
+          <Link href={`/produits/${product.product_id}`} className="hover:underline">
             {product.name}
           </Link>
         </h3>
