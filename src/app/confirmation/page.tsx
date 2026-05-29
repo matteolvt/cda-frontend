@@ -1,11 +1,9 @@
 "use client";
-
 import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import Link from "next/link";
 import { CheckCircle } from "lucide-react";
-
 
 function ConfirmationContent() {
   const searchParams = useSearchParams();
@@ -27,13 +25,16 @@ function ConfirmationContent() {
     const createOrder = async () => {
       try {
         const token = localStorage.getItem("access_token");
+        const savedAddress = JSON.parse(localStorage.getItem("shads_order_address") || "{}");
+
         const items = cart.map((item) => ({
-          product_id: item.product.id, 
+          product_id: item.product.id,
           quantity: item.quantity,
         }));
 
-        console.log("Token:", token);
-        console.log("Items:", items);
+        const address = savedAddress.address
+          ? `${savedAddress.address}, ${savedAddress.postalCode} ${savedAddress.city}, ${savedAddress.country}`
+          : "";
 
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/orders/`, {
           method: "POST",
@@ -41,12 +42,10 @@ function ConfirmationContent() {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ items }),
+          body: JSON.stringify({ items, address }),
         });
 
-        console.log("Status:", res.status);
         const data = await res.json();
-        console.log("Response:", data);
 
         if (!res.ok) {
           throw new Error(data.errors?.[0] || data.detail || "Erreur création commande");
@@ -54,8 +53,9 @@ function ConfirmationContent() {
 
         setOrderCreated(true);
         clearCart();
-      } catch (err: unknown) { // CORRECTION ICI
-        setError(err instanceof Error ? err.message : "Une erreur est survenue"); // CORRECTION ICI
+        localStorage.removeItem("shads_order_address");
+      } catch (err: unknown) {
+        setError(err instanceof Error ? err.message : "Une erreur est survenue");
       }
     };
 
@@ -94,16 +94,12 @@ function ConfirmationContent() {
       )}
 
       <div className="border-t border-stone-200 pt-8 space-y-4">
-        <Link
-          href="/produits"
-          className="block w-full bg-stone-900 text-white py-4 uppercase tracking-widest text-xs hover:bg-stone-700 transition duration-300"
-        >
+        <Link href="/produits"
+          className="block w-full bg-stone-900 text-white py-4 uppercase tracking-widest text-xs hover:bg-stone-700 transition duration-300">
           Continuer mes achats
         </Link>
-        <Link
-          href="/profile"
-          className="block w-full border border-stone-300 text-stone-900 py-4 uppercase tracking-widest text-xs hover:bg-stone-100 transition duration-300"
-        >
+        <Link href="/profile"
+          className="block w-full border border-stone-300 text-stone-900 py-4 uppercase tracking-widest text-xs hover:bg-stone-100 transition duration-300">
           Voir mes commandes
         </Link>
       </div>
