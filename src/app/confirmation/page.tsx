@@ -28,8 +28,6 @@ function ConfirmationContent() {
       try {
         const token = localStorage.getItem("access_token");
         const items = cart.map((item) => ({
-          // Petite note : Vérifie si c'est item.product.id ou item.product.product_id
-          // selon comment ton CartContext est fait !
           product_id: item.product.id, 
           quantity: item.quantity,
         }));
@@ -56,8 +54,8 @@ function ConfirmationContent() {
 
         setOrderCreated(true);
         clearCart();
-      } catch (err: any) {
-        setError(err.message);
+      } catch (err: unknown) { // CORRECTION ICI
+        setError(err instanceof Error ? err.message : "Une erreur est survenue"); // CORRECTION ICI
       }
     };
 

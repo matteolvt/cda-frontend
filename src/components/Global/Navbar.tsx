@@ -22,6 +22,7 @@ export default function Navbar() {
   };
 
   useEffect(() => {
+    // eslint-disable-next-line
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
@@ -107,8 +108,7 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* 
-        Menu Mobile : Version 1 "Dark Frosted Glass"
+      {/* Menu Mobile : Version 1 "Dark Frosted Glass"
       */}
       <div 
         className={`fixed inset-0 bg-stone-900/60 backdrop-blur-xl z-[60] flex flex-col items-center justify-center space-y-10 text-white uppercase tracking-[0.2em] font-light transition-transform duration-500 ease-in-out md:hidden ${
@@ -134,7 +134,7 @@ export default function Navbar() {
               <img
                 src="/images/logo.svg"
                 alt="Shad's Candle"
-                className="h-16 w-auto block" // "invert" a été retiré, le logo reste blanc
+                className="h-16 w-auto block" 
               />
             </Link>
           </div>

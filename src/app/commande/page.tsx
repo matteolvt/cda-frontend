@@ -55,8 +55,8 @@ export default function CommandePage() {
       if (!res.ok) throw new Error(data.error || "Erreur lors de la création de la session");
 
       window.location.href = data.url;
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) { // CORRECTION ICI
+      setError(err instanceof Error ? err.message : "Une erreur est survenue"); // CORRECTION ICI
       setLoading(false);
     }
   };
