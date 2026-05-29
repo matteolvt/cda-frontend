@@ -1,15 +1,24 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ShoppingBag, Package, TrendingUp } from "lucide-react";
+import { ShoppingBag, Package, TrendingUp, Eye } from "lucide-react";
 import { API_URL } from "@/lib/api";
+
+interface OrderDetail {
+  order_detail_id: number;
+  name: string;
+  price: number;
+  quantity: number;
+  total: number;
+}
 
 interface Order {
   order_id: number;
   reference: string;
   date: string;
   paid: boolean;
-  details: { total: number }[];
+  address: string;
+  details: OrderDetail[];
 }
 
 interface Product {
@@ -23,6 +32,7 @@ export default function AdminDashboard() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem("access_token");
@@ -41,6 +51,8 @@ export default function AdminDashboard() {
         const ordersData = await ordersRes.json();
         const productsData = await productsRes.json();
 
+        console.log("Commandes reçues:", JSON.stringify(ordersData, null, 2));
+
         setOrders(Array.isArray(ordersData) ? ordersData : ordersData.results || []);
         setProducts(Array.isArray(productsData) ? productsData : productsData.results || []);
       } catch (err) {
@@ -55,11 +67,12 @@ export default function AdminDashboard() {
 
   const totalRevenue = orders
     .filter((o) => o.paid)
-    .reduce((acc, o) => acc + o.details.reduce((s, d) => s + d.total, 0), 0);
+    .reduce((acc, o) => acc + (o.details || []).reduce((s, d) => s + d.total, 0), 0);
 
   const paidOrders = orders.filter((o) => o.paid).length;
   const pendingOrders = orders.filter((o) => !o.paid).length;
   const lowStockProducts = products.filter((p) => p.stock < 5).length;
+  const orderTotal = (order: Order) => (order.details || []).reduce((acc, d) => acc + d.total, 0);
 
   const recentOrders = [...orders]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
@@ -117,6 +130,7 @@ export default function AdminDashboard() {
         />
       </div>
 
+      {/* Dernières commandes */}
       <div className="bg-white border border-gray-100 shadow-sm">
         <div className="px-6 py-4 border-b border-gray-100 flex items-center gap-3">
           <ShoppingBag size={16} className="text-gray-400" />
@@ -143,13 +157,21 @@ export default function AdminDashboard() {
                     {new Date(order.date).toLocaleDateString("fr-FR")}
                   </p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-serif text-gray-900">
-                    {formatPrice(order.details.reduce((acc, d) => acc + d.total, 0))} €
-                  </p>
-                  <span className={`text-[10px] uppercase tracking-widest ${order.paid ? "text-green-600" : "text-orange-500"}`}>
-                    {order.paid ? "Payée" : "En attente"}
-                  </span>
+                <div className="flex items-center gap-4">
+                  <div className="text-right">
+                    <p className="text-sm font-serif text-gray-900">
+                      {formatPrice(orderTotal(order))} €
+                    </p>
+                    <span className={`text-[10px] uppercase tracking-widest ${order.paid ? "text-green-600" : "text-orange-500"}`}>
+                      {order.paid ? "Payée" : "En attente"}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => setSelectedOrder(order)}
+                    className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
+                  >
+                    <Eye size={16} />
+                  </button>
                 </div>
               </div>
             ))}
@@ -157,6 +179,7 @@ export default function AdminDashboard() {
         )}
       </div>
 
+      {/* Produits stock faible */}
       {lowStockProducts > 0 && (
         <div className="bg-white border border-red-100 shadow-sm">
           <div className="px-6 py-4 border-b border-red-100 flex items-center gap-3">
@@ -176,6 +199,70 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               ))}
+          </div>
+        </div>
+      )}
+
+      {/* Modal détail commande */}
+      {selectedOrder && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
+            <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+              <h2 className="text-xs uppercase tracking-widest text-gray-900 font-medium">
+                #{selectedOrder.reference}
+              </h2>
+              <button onClick={() => setSelectedOrder(null)} className="text-gray-400 hover:text-gray-900">✕</button>
+            </div>
+
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Date</p>
+                  <p className="text-sm text-gray-900">
+                    {new Date(selectedOrder.date).toLocaleDateString("fr-FR")}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Statut</p>
+                  <span className={`text-sm font-medium ${selectedOrder.paid ? "text-green-600" : "text-orange-500"}`}>
+                    {selectedOrder.paid ? "Payée" : "En attente"}
+                  </span>
+                </div>
+              </div>
+
+              {selectedOrder.address && (
+                <div>
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Adresse de livraison</p>
+                  <p className="text-sm text-gray-900">{selectedOrder.address}</p>
+                </div>
+              )}
+
+              <div>
+                <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-3">Produits</p>
+                <div className="space-y-3">
+                  {(selectedOrder.details || []).map((detail) => (
+                    <div key={detail.order_detail_id} className="flex justify-between items-center py-2 border-b border-gray-50">
+                      <div>
+                        <p className="text-sm text-gray-900">{detail.name}</p>
+                        <p className="text-[10px] text-gray-400">
+                          {detail.quantity} × {formatPrice(detail.price)} €
+                        </p>
+                      </div>
+                      <p className="text-sm font-serif text-gray-900">
+                        {formatPrice(detail.total)} €
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-between items-center pt-2 border-t border-gray-200">
+                <p className="text-xs uppercase tracking-widest text-gray-900 font-medium">Total</p>
+                <p className="text-lg font-serif text-gray-900">
+                  {formatPrice(orderTotal(selectedOrder))} €
+                </p>
+              </div>
+            </div>
           </div>
         </div>
       )}
