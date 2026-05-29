@@ -44,13 +44,14 @@ export default function CommandePage() {
     setError("");
 
     try {
-      // Sauvegarde du formulaire avant redirection Stripe
       localStorage.setItem("shads_order_address", JSON.stringify(form));
+
+      const token = localStorage.getItem("access_token");
 
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ items: cart }),
+        body: JSON.stringify({ items: cart, token }),
       });
 
       const data = await res.json();
