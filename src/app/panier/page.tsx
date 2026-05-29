@@ -9,16 +9,18 @@ export default function CartPage() {
 
   return (
     <main>
-      <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
+      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
+      <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] py-12 px-4 md:px-12">
+      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] py-10 md:py-12 px-4 md:px-12">
         <div className="max-w-[1200px] mx-auto">
-          <h1 className="font-serif text-3xl text-stone-900 uppercase tracking-[0.2em] mb-12 text-center">
+          {/* Ajustement du titre et de la marge du bas sur mobile */}
+          <h1 className="font-serif text-2xl md:text-3xl text-stone-900 uppercase tracking-[0.2em] mb-8 md:mb-12 text-center">
             Votre Panier
           </h1>
 
           {cart.length > 0 ? (
-            <div className="flex flex-col lg:flex-row gap-12">
+            <div className="flex flex-col lg:flex-row gap-8 md:gap-12">
 
               {/* LISTE DES PRODUITS */}
               <div className="lg:w-2/3">
@@ -67,7 +69,7 @@ export default function CartPage() {
                             </div>
                           </td>
 
-                          <td className="p-4 text-center block sm:table-cell">
+                          <td className="p-4 text-center block sm:table-cell mt-2 sm:mt-0">
                             <div className="inline-flex items-center border border-stone-200">
                               <button
                                 onClick={() => updateQuantity(item.id, -1)}
@@ -87,7 +89,7 @@ export default function CartPage() {
                             </div>
                           </td>
 
-                          <td className="p-4 text-right text-sm font-bold text-stone-900 block sm:table-cell">
+                          <td className="p-4 text-right text-sm font-bold text-stone-900 block sm:table-cell mt-2 sm:mt-0">
                             {((item.product.price * item.quantity) / 100).toFixed(2).replace('.', ',')} €
                           </td>
 
@@ -111,7 +113,7 @@ export default function CartPage() {
 
               {/* RÉSUMÉ COMMANDE */}
               <div className="lg:w-1/3">
-                <div className="bg-white p-8 shadow-sm border border-[#EFDDD1] sticky top-32">
+                <div className="bg-white p-6 md:p-8 shadow-sm border border-[#EFDDD1] sticky top-32">
                   <h2 className="font-serif text-xl text-stone-900 uppercase tracking-widest mb-6">
                     Récapitulatif
                   </h2>
@@ -129,13 +131,13 @@ export default function CartPage() {
                   </div>
                   <Link
                     href="/commande"
-                    className="block text-center w-full bg-stone-900 text-white py-4 uppercase tracking-[0.2em] text-[10px] font-bold hover:bg-stone-800 transition-colors shadow-lg mb-4"
+                    className="block text-center w-full bg-stone-900 text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-stone-800 transition-colors shadow-lg mb-4"
                   >
                     Passer au paiement
                   </Link>
                   <Link
                     href="/produits"
-                    className="block text-center text-[10px] text-stone-500 underline hover:text-stone-900 uppercase tracking-wider"
+                    className="block text-center text-[10px] md:text-xs text-stone-500 underline hover:text-stone-900 uppercase tracking-wider"
                   >
                     Continuer mes achats
                   </Link>
@@ -152,12 +154,12 @@ export default function CartPage() {
                   <path d="M16 10a4 4 0 0 1-8 0"/>
                 </svg>
               </div>
-              <p className="text-stone-900 text-lg font-medium uppercase tracking-widest mb-2">
+              <p className="text-stone-900 text-base md:text-lg font-medium uppercase tracking-widest mb-2">
                 Votre panier est vide
               </p>
               <Link
                 href="/produits"
-                className="inline-block mt-4 bg-stone-900 text-white px-8 py-4 uppercase tracking-[0.2em] text-[10px] font-bold hover:bg-stone-800 transition-colors shadow-lg"
+                className="inline-block mt-4 bg-stone-900 text-white px-8 py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-stone-800 transition-colors shadow-lg"
               >
                 Découvrir la boutique
               </Link>

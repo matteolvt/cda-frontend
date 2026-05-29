@@ -17,19 +17,13 @@ interface CartItem {
   custom_scent?: string;
 }
 
-interface GuestCartItem {
-  product_id: number;
-  quantity: number;
-  custom_name?: string;
-  custom_scent?: string;
-}
-
 interface CartContextType {
   cart: CartItem[];
   total: number;
   addToCart: (productId: number, quantity: number, customName?: string, customScent?: string) => Promise<void>;
-  updateQuantity: (itemId: number, delta: number) => Promise<void>;
-  removeItem: (itemId: number) => Promise<void>;
+  updateQuantity: (itemId: number, delta: number) => void;
+  removeItem: (itemId: number) => void;
+  clearCart: () => void;
   isLogged: boolean;
 }
 
@@ -40,14 +34,6 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const [isClient, setIsClient] = useState(false);
   const [isLogged, setIsLogged] = useState(false);
 
-  const getHeaders = () => {
-    const token = localStorage.getItem("access_token");
-    return {
-      "Content-Type": "application/json",
-      ...(token ? { "Authorization": `Bearer ${token}` } : {}),
-    };
-  };
-
   // ─── INIT ────────────────────────────────────────────────────
   useEffect(() => {
     setIsClient(true);
@@ -55,7 +41,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
     setIsLogged(!!token);
 
     try {
-      const saved = localStorage.getItem('shads_cart');
+      const saved = localStorage.getItem("shads_cart");
       if (saved) setCart(JSON.parse(saved));
     } catch {}
   }, []);
@@ -63,36 +49,8 @@ export function CartProvider({ children }: { children: ReactNode }) {
   // ─── SYNC localStorage ───────────────────────────────────────
   useEffect(() => {
     if (!isClient) return;
-    localStorage.setItem('shads_cart', JSON.stringify(cart));
+    localStorage.setItem("shads_cart", JSON.stringify(cart));
   }, [cart, isClient]);
-
-  // ─── CHARGEMENT PANIER (connecté uniquement) ─────────────────
-  useEffect(() => {
-    if (!isClient) return;
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    fetch(`${API_URL}/cart/`, { headers: getHeaders() })
-      .then((res) => {
-        // 🔑 MODIFICATION : Si le token est invalide, on le nettoie proprement
-        if (res.status === 401) {
-          localStorage.removeItem("access_token");
-          localStorage.removeItem("refresh_token");
-          setIsLogged(false);
-          throw new Error("Token expiré, passage en mode visiteur");
-        }
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-        return res.json();
-      })
-      .then((data) => {
-        const items = Array.isArray(data) ? data : [];
-        if (items.length > 0) {
-          setCart(items);
-          localStorage.setItem('shads_cart', JSON.stringify(items));
-        }
-      })
-      .catch((err) => console.error("Erreur chargement panier:", err));
-  }, [isClient]);
 
   // ─── AJOUTER AU PANIER ───────────────────────────────────────
   const addToCart = async (
@@ -101,59 +59,27 @@ export function CartProvider({ children }: { children: ReactNode }) {
     customName?: string,
     customScent?: string
   ) => {
-    const token = localStorage.getItem("access_token");
+    const existing = cart.find((item) => item.product.id === productId);
 
-    // ✅ Connecté → appel API Django
-    if (token) {
-      try {
-        const res = await fetch(`${API_URL}/cart/add/`, {
-          method: "POST",
-          headers: getHeaders(),
-          body: JSON.stringify({
-            product_id: productId,
-            quantity,
-            custom_name: customName,
-            custom_scent: customScent,
-          }),
-        });
-        
-        if (res.status === 401) {
-          localStorage.removeItem("access_token");
-          setIsLogged(false);
-          throw new Error("Token expiré");
-        }
-        
-        if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-        const updatedCart = await res.json();
-        const items = Array.isArray(updatedCart) ? updatedCart : [];
-        setCart(items);
-        localStorage.setItem('shads_cart', JSON.stringify(items));
-      } catch (error) {
-        console.error("Erreur ajout panier:", error);
-      }
+    if (existing) {
+      setCart((prev) =>
+        prev.map((item) =>
+          item.product.id === productId
+            ? { ...item, quantity: item.quantity + quantity }
+            : item
+        )
+      );
       return;
     }
 
-    // ✅ Non connecté → panier local avec vraies infos produit
-    const guestCart: GuestCartItem[] = JSON.parse(localStorage.getItem('shads_cart_guest') || '[]');
-    const existing = guestCart.find(item => item.product_id === productId);
+    try {
+      const res = await fetch(`${API_URL}/products/${productId}/`);
+      if (!res.ok) throw new Error("Produit introuvable");
+      const product = await res.json();
 
-    if (existing) {
-      existing.quantity += quantity;
-      localStorage.setItem('shads_cart_guest', JSON.stringify(guestCart));
-      setCart(prev => prev.map(item =>
-        item.product.id === productId
-          ? { ...item, quantity: item.quantity + quantity }
-          : item
-      ));
-    } else {
-      guestCart.push({ product_id: productId, quantity, custom_name: customName, custom_scent: customScent });
-      localStorage.setItem('shads_cart_guest', JSON.stringify(guestCart));
-
-      try {
-        const res = await fetch(`${API_URL}/products/${productId}/`);
-        const product = await res.json();
-        setCart(prev => [...prev, {
+      setCart((prev) => [
+        ...prev,
+        {
           id: productId,
           product: {
             id: product.id,
@@ -164,15 +90,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
           quantity,
           custom_name: customName,
           custom_scent: customScent,
-        }]);
-      } catch {
-        console.error("Impossible de récupérer les infos produit");
-      }
+        },
+      ]);
+    } catch {
+      console.error("Impossible de récupérer les infos produit");
     }
   };
 
   // ─── METTRE À JOUR LA QUANTITÉ ───────────────────────────────
-  const updateQuantity = async (itemId: number, delta: number) => {
+  const updateQuantity = (itemId: number, delta: number) => {
     setCart((prev) =>
       prev.map((item) =>
         item.id === itemId
@@ -180,43 +106,17 @@ export function CartProvider({ children }: { children: ReactNode }) {
           : item
       )
     );
-
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    try {
-      const res = await fetch(`${API_URL}/cart/update/${itemId}/`, {
-        method: "PATCH",
-        headers: getHeaders(),
-        body: JSON.stringify({ delta }),
-      });
-      if (!res.ok) throw new Error(`Erreur HTTP ${res.status}`);
-      const updatedCart = await res.json();
-      const items = Array.isArray(updatedCart) ? updatedCart : [];
-      if (items.length > 0) {
-        setCart(items);
-        localStorage.setItem('shads_cart', JSON.stringify(items));
-      }
-    } catch (error) {
-      console.error("Erreur mise à jour:", error);
-    }
   };
 
   // ─── SUPPRIMER UN ITEM ───────────────────────────────────────
-  const removeItem = async (itemId: number) => {
+  const removeItem = (itemId: number) => {
     setCart((prev) => prev.filter((item) => item.id !== itemId));
+  };
 
-    const token = localStorage.getItem("access_token");
-    if (!token) return;
-
-    try {
-      await fetch(`${API_URL}/cart/remove/${itemId}/`, {
-        method: "DELETE",
-        headers: getHeaders(),
-      });
-    } catch (error) {
-      console.error("Erreur suppression:", error);
-    }
+  // ─── VIDER LE PANIER ─────────────────────────────────────────
+  const clearCart = () => {
+    setCart([]);
+    localStorage.removeItem("shads_cart");
   };
 
   const total = cart.reduce(
@@ -225,7 +125,7 @@ export function CartProvider({ children }: { children: ReactNode }) {
   );
 
   return (
-    <CartContext.Provider value={{ cart, total, addToCart, updateQuantity, removeItem, isLogged }}>
+    <CartContext.Provider value={{ cart, total, addToCart, updateQuantity, removeItem, clearCart, isLogged }}>
       {children}
     </CartContext.Provider>
   );
