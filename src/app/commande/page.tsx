@@ -44,6 +44,9 @@ export default function CommandePage() {
     setError("");
 
     try {
+      // Sauvegarde du formulaire avant redirection Stripe
+      localStorage.setItem("shads_order_address", JSON.stringify(form));
+
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -55,8 +58,8 @@ export default function CommandePage() {
       if (!res.ok) throw new Error(data.error || "Erreur lors de la création de la session");
 
       window.location.href = data.url;
-    } catch (err: unknown) { // CORRECTION ICI
-      setError(err instanceof Error ? err.message : "Une erreur est survenue"); // CORRECTION ICI
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Une erreur est survenue");
       setLoading(false);
     }
   };
@@ -72,7 +75,6 @@ export default function CommandePage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
 
-          {/* Formulaire adresse */}
           <form onSubmit={handleSubmit} className="space-y-4">
             <h2 className="uppercase tracking-widest text-xs text-stone-500 mb-6">
               Adresse de livraison
@@ -81,103 +83,57 @@ export default function CommandePage() {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Prénom</label>
-                <input
-                  type="text"
-                  name="firstName"
-                  required
-                  value={form.firstName}
-                  onChange={handleChange}
-                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-                />
+                <input type="text" name="firstName" required value={form.firstName} onChange={handleChange}
+                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
               </div>
               <div>
                 <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Nom</label>
-                <input
-                  type="text"
-                  name="lastName"
-                  required
-                  value={form.lastName}
-                  onChange={handleChange}
-                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-                />
+                <input type="text" name="lastName" required value={form.lastName} onChange={handleChange}
+                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Email</label>
-              <input
-                type="email"
-                name="email"
-                required
-                value={form.email}
-                onChange={handleChange}
-                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-              />
+              <input type="email" name="email" required value={form.email} onChange={handleChange}
+                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
             </div>
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Adresse</label>
-              <input
-                type="text"
-                name="address"
-                required
-                value={form.address}
-                onChange={handleChange}
-                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-              />
+              <input type="text" name="address" required value={form.address} onChange={handleChange}
+                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Ville</label>
-                <input
-                  type="text"
-                  name="city"
-                  required
-                  value={form.city}
-                  onChange={handleChange}
-                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-                />
+                <input type="text" name="city" required value={form.city} onChange={handleChange}
+                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
               </div>
               <div>
                 <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Code postal</label>
-                <input
-                  type="text"
-                  name="postalCode"
-                  required
-                  value={form.postalCode}
-                  onChange={handleChange}
-                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-                />
+                <input type="text" name="postalCode" required value={form.postalCode} onChange={handleChange}
+                  className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
               </div>
             </div>
 
             <div>
               <label className="block text-xs uppercase tracking-widest text-stone-500 mb-2">Pays</label>
-              <input
-                type="text"
-                name="country"
-                required
-                value={form.country}
-                onChange={handleChange}
-                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400"
-              />
+              <input type="text" name="country" required value={form.country} onChange={handleChange}
+                className="w-full border border-stone-200 bg-white px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-400" />
             </div>
 
             {error && (
               <p className="text-red-800 text-xs uppercase tracking-widest">{error}</p>
             )}
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-stone-900 text-white py-4 uppercase tracking-widest text-xs hover:bg-stone-700 transition duration-300 disabled:opacity-50 mt-4"
-            >
+            <button type="submit" disabled={loading}
+              className="w-full bg-stone-900 text-white py-4 uppercase tracking-widest text-xs hover:bg-stone-700 transition duration-300 disabled:opacity-50 mt-4">
               {loading ? "Redirection..." : "Payer avec Stripe"}
             </button>
           </form>
 
-          {/* Récap commande */}
           <div>
             <h2 className="uppercase tracking-widest text-xs text-stone-500 mb-6">
               Récapitulatif
@@ -187,20 +143,12 @@ export default function CommandePage() {
               {cart.map((item) => (
                 <div key={item.id} className="flex items-center gap-4 border-b border-stone-100 pb-4">
                   {item.product.image && (
-                    <img
-                      src={item.product.image}
-                      alt={item.product.name}
-                      className="w-16 h-16 object-cover"
-                    />
+                    <img src={item.product.image} alt={item.product.name} className="w-16 h-16 object-cover" />
                   )}
                   <div className="flex-1">
                     <p className="text-sm text-stone-900">{item.product.name}</p>
-                    {item.custom_name && (
-                      <p className="text-xs text-stone-400">Prénom : {item.custom_name}</p>
-                    )}
-                    {item.custom_scent && (
-                      <p className="text-xs text-stone-400">Parfum : {item.custom_scent}</p>
-                    )}
+                    {item.custom_name && <p className="text-xs text-stone-400">Prénom : {item.custom_name}</p>}
+                    {item.custom_scent && <p className="text-xs text-stone-400">Parfum : {item.custom_scent}</p>}
                     <p className="text-xs text-stone-500 mt-1">Qté : {item.quantity}</p>
                   </div>
                   <p className="text-sm text-stone-900">
