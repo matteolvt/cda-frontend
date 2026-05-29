@@ -2,12 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { authService } from "@/services/auth";
 
 export default function RegisterPage() {
-  const router = useRouter(); // Déclaration du router
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
@@ -41,10 +39,7 @@ export default function RegisterPage() {
         email,
         password,
       });
-
-      // Conservation de la version feature
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
       
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
@@ -55,28 +50,32 @@ export default function RegisterPage() {
 
   return (
     <>
-      <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
+      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
+      <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-20 px-4">
-        <div className="bg-white w-full max-w-[500px] p-10 md:p-16 shadow-sm">
+      {/* Ajustement du padding vertical (py-10 au lieu de py-20 sur mobile) */}
+      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-10 md:py-20 px-4">
+        {/* Ajustement du padding intérieur de la carte (p-6 sur mobile) */}
+        <div className="bg-white w-full max-w-[500px] p-6 sm:p-10 md:p-16 shadow-sm">
           
-          <div className="text-center mb-12">
-            <h1 className="font-serif text-3xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-4">
+          <div className="text-center mb-8 md:mb-12">
+            <h1 className="font-serif text-2xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-3 md:mb-4">
               Inscription
             </h1>
-            <p className="text-stone-500 text-xs uppercase tracking-widest font-light">
+            <p className="text-stone-500 text-[10px] md:text-xs uppercase tracking-widest font-light">
               Rejoignez l&apos;univers Shad&apos;s Candle
             </p>
           </div>
 
           {error && (
-            <div className="mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-xs text-center uppercase tracking-wider">
+            <div className="mb-5 md:mb-6 p-3 bg-red-50 border border-red-200 text-red-600 text-[10px] md:text-xs text-center uppercase tracking-wider">
               {error}
             </div>
           )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
+          <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
+            {/* Grille sur 1 colonne pour mobile, 2 colonnes pour tablette/ordi */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
                   Prénom
@@ -86,7 +85,7 @@ export default function RegisterPage() {
                   required
                   value={firstname}
                   onChange={(e) => setFirstname(e.target.value)}
-                  className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
+                  className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
                 />
               </div>
               <div className="space-y-2">
@@ -98,7 +97,7 @@ export default function RegisterPage() {
                   required
                   value={lastname}
                   onChange={(e) => setLastname(e.target.value)}
-                  className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
+                  className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
                 />
               </div>
             </div>
@@ -112,7 +111,7 @@ export default function RegisterPage() {
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
+                className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
               />
             </div>
 
@@ -124,11 +123,11 @@ export default function RegisterPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
-                  minLength={12} // Conservation de la version feature
+                  minLength={12}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Votre mot de passe"
-                  className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
+                  className="w-full bg-[#FDFBF7] border border-stone-200 pl-4 pr-12 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
                 />
                 <button
                   type="button"
@@ -142,7 +141,7 @@ export default function RegisterPage() {
                   )}
                 </button>
               </div>
-              <p className="text-[9px] text-stone-400 mt-1 uppercase tracking-widest">
+              <p className="text-[8px] md:text-[9px] text-stone-400 mt-1 uppercase tracking-widest leading-relaxed">
                 Min. 12 caractères. 1 majuscule, 1 chiffre, 1 caractère spécial.
               </p>
             </div>
@@ -153,9 +152,9 @@ export default function RegisterPage() {
                 required
                 checked={agreeTerms}
                 onChange={(e) => setAgreeTerms(e.target.checked)}
-                className="mt-1 accent-stone-900"
+                className="mt-1 accent-stone-900 w-4 h-4 shrink-0"
               />
-              <label className="text-[10px] text-stone-500 leading-relaxed uppercase tracking-wider">
+              <label className="text-[9px] md:text-[10px] text-stone-500 leading-relaxed uppercase tracking-wider">
                 J&apos;accepte les conditions d&apos;utilisation et la politique de confidentialité.
               </label>
             </div>
@@ -163,19 +162,19 @@ export default function RegisterPage() {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-stone-900 text-white py-5 uppercase tracking-[0.3em] text-[11px] font-bold hover:bg-stone-800 transition-colors duration-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-stone-900 text-white py-4 md:py-5 uppercase tracking-[0.3em] text-[10px] md:text-[11px] font-bold hover:bg-stone-800 transition-colors duration-500 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed mt-2"
             >
               {isLoading ? "Création en cours..." : "Créer mon compte"}
             </button>
           </form>
 
-          <div className="mt-12 pt-8 border-t border-stone-100 text-center">
-            <p className="text-stone-400 text-[11px] uppercase tracking-widest mb-4">
+          <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-stone-100 text-center">
+            <p className="text-stone-400 text-[10px] md:text-[11px] uppercase tracking-widest mb-3 md:mb-4">
               Vous avez déjà un compte&nbsp;?
             </p>
             <Link
               href="/login"
-              className="inline-block text-stone-900 text-[11px] font-bold uppercase tracking-[0.2em] border-b border-stone-900 pb-1 hover:opacity-50 transition-opacity"
+              className="inline-block text-stone-900 text-[10px] md:text-[11px] font-bold uppercase tracking-[0.2em] border-b border-stone-900 pb-1 hover:opacity-50 transition-opacity"
             >
               Se Connecter
             </Link>
