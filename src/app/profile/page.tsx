@@ -13,11 +13,16 @@ interface User {
   lastname: string;
 }
 
-interface Order {
-  reference: string;
-  createdAt: string;
-  isPaid: boolean;
+interface OrderDetail {
   total: number;
+}
+
+interface Order {
+  order_id: number;
+  reference: string;
+  date: string;
+  paid: boolean;
+  details: OrderDetail[];
 }
 
 export default function ProfilePage() {
@@ -52,18 +57,13 @@ export default function ProfilePage() {
         }
         
         const data = await res.json();
-        
-        console.log("🕵️ Données brutes reçues de Django :", data);
 
-        // 🛡️ ON S'ADAPTE AUX DEUX FORMATS :
         if (data.user) {
-          // Format 1 : Les données sont bien rangées dans "user"
           setUser(data.user);
           setOrders(data.orders || []);
         } else if (data.email) {
-          // Format 2 : Les données sont en vrac (anciennes routes Django)
           setUser(data);
-          setOrders(data.orders || []); 
+          setOrders(data.orders || []);
         } else {
           throw new Error("Format de réponse inattendu de l'API.");
         }
@@ -107,20 +107,21 @@ export default function ProfilePage() {
 
   const capitalize = (str: string) => str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
   const formatPrice = (cents: number) => (cents / 100).toFixed(2).replace('.', ',');
+  const orderTotal = (order: Order) => order.details.reduce((acc, d) => acc + d.total, 0);
 
   return (
     <>
-      <div className="w-full h-[208px] bg-[#FFF9F3]"></div>
-      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] py-12 px-4 md:px-12">
+      <div className="w-full h-[120px] md:h-[208px] bg-[#FFF9F3]"></div>
+      
+      <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] py-10 md:py-12 px-4 md:px-12">
         <div className="max-w-[1200px] mx-auto">
 
-          {/* ─── EN-TÊTE ─────────────────────────────────────── */}
-          <div className="flex flex-col md:flex-row justify-between items-end mb-12 border-b border-stone-300/50 pb-8 gap-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end mb-8 md:mb-12 border-b border-stone-300/50 pb-6 md:pb-8 gap-4 md:gap-6">
             <div>
-              <h1 className="font-serif text-3xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-2">
+              <h1 className="font-serif text-2xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-2">
                 Mon Compte
               </h1>
-              <p className="text-stone-500 text-xs uppercase tracking-widest font-light">
+              <p className="text-stone-500 text-[10px] md:text-xs uppercase tracking-widest font-light">
                 Ravi de vous revoir,{" "}
                 <span className="text-stone-900 font-bold">
                   {capitalize(user.firstname)}
@@ -129,57 +130,59 @@ export default function ProfilePage() {
             </div>
             <button
               onClick={handleLogout}
-              className="px-6 py-3 border border-stone-300 text-stone-600 text-[10px] uppercase tracking-widest hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-colors"
+              className="w-full md:w-auto px-6 py-3 border border-stone-300 text-stone-600 text-[10px] md:text-xs uppercase tracking-widest text-center hover:bg-stone-900 hover:text-white hover:border-stone-900 transition-colors"
             >
               Se déconnecter
             </button>
           </div>
 
-          {/* ─── INFOS PERSONNELLES ───────────────────────────── */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-            <div className="bg-white p-6 shadow-sm border border-[#EFDDD1]">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
+            <div className="bg-white p-5 md:p-6 shadow-sm border border-[#EFDDD1]">
               <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-1">Prénom</p>
-              <p className="text-stone-900 font-serif text-lg">{capitalize(user.firstname)}</p>
+              <p className="text-stone-900 font-serif text-base md:text-lg">{capitalize(user.firstname)}</p>
             </div>
-            <div className="bg-white p-6 shadow-sm border border-[#EFDDD1]">
+            <div className="bg-white p-5 md:p-6 shadow-sm border border-[#EFDDD1]">
               <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-1">Nom</p>
-              <p className="text-stone-900 font-serif text-lg">{capitalize(user.lastname)}</p>
+              <p className="text-stone-900 font-serif text-base md:text-lg">{capitalize(user.lastname)}</p>
             </div>
-            <div className="bg-white p-6 shadow-sm border border-[#EFDDD1]">
+            <div className="bg-white p-5 md:p-6 shadow-sm border border-[#EFDDD1]">
               <p className="text-[10px] uppercase tracking-widest text-stone-400 mb-1">Email</p>
-              <p className="text-stone-900 font-serif text-lg">{user.email}</p>
+              <p className="text-stone-900 font-serif text-base md:text-lg overflow-hidden text-ellipsis">{user.email}</p>
             </div>
           </div>
 
-          {/* ─── COMMANDES ───────────────────────────────────── */}
-          <div className="bg-white p-8 shadow-sm border border-[#EFDDD1]">
+          <div className="bg-white p-5 md:p-8 shadow-sm border border-[#EFDDD1]">
             <div className="flex items-center gap-3 mb-6">
               <ShoppingBag className="w-4 h-4 text-stone-400" />
-              <h2 className="font-serif text-xl text-stone-900 uppercase tracking-widest">
+              <h2 className="font-serif text-lg md:text-xl text-stone-900 uppercase tracking-widest">
                 Mes Commandes
               </h2>
             </div>
             {orders.length === 0 ? (
-              <div className="text-center py-12">
+              <div className="text-center py-8 md:py-12">
                 <FileText className="w-8 h-8 text-stone-300 mx-auto mb-4" />
-                <p className="text-stone-400 text-xs uppercase tracking-widest">
+                <p className="text-stone-400 text-[10px] md:text-xs uppercase tracking-widest">
                   Aucune commande pour le moment
                 </p>
               </div>
             ) : (
               <div className="space-y-4">
                 {orders.map((order) => (
-                  <div key={order.reference} className="flex justify-between items-center p-4 border border-stone-100">
+                  <div key={order.order_id} className="flex justify-between items-center p-4 border border-stone-100">
                     <div>
-                      <p className="text-xs uppercase tracking-widest text-stone-900 font-bold">
+                      <p className="text-[10px] md:text-xs uppercase tracking-widest text-stone-900 font-bold">
                         #{order.reference}
                       </p>
-                      <p className="text-xs text-stone-400 mt-1">{order.createdAt}</p>
+                      <p className="text-[10px] md:text-xs text-stone-400 mt-1">
+                        {new Date(order.date).toLocaleDateString('fr-FR')}
+                      </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-stone-900 font-serif">{formatPrice(order.total)} €</p>
-                      <p className={`text-[10px] uppercase tracking-widest mt-1 ${order.isPaid ? 'text-green-600' : 'text-orange-500'}`}>
-                        {order.isPaid ? 'Payée' : 'En attente'}
+                      <p className="text-stone-900 font-serif text-sm md:text-base">
+                        {formatPrice(orderTotal(order))} €
+                      </p>
+                      <p className={`text-[9px] md:text-[10px] uppercase tracking-widest mt-1 ${order.paid ? 'text-green-600' : 'text-orange-500'}`}>
+                        {order.paid ? 'Payée' : 'En attente'}
                       </p>
                     </div>
                   </div>

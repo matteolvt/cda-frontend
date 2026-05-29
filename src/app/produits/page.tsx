@@ -9,7 +9,8 @@ import ProductCard from '../../components/Product/ProductCard';
 import ReassuranceSection from '../../components/Global/ReassuranceSection';
 
 interface Product {
-  id: number;
+  id?: number;
+  product_id?: number;
   name: string;
   price: number;
   image?: string;
@@ -17,6 +18,13 @@ interface Product {
 }
 
 const PRODUCTS_PER_PAGE = 16;
+
+const categoryMapping: Record<string, string> = {
+  'parfumees': 'Bougies Parfumées',
+  'moulees': 'Bougies Moulées',
+  'coffrets': 'Coffrets',
+  'fondants': 'Fondants',
+};
 
 function ProductsContent() {
   const searchParams = useSearchParams();
@@ -37,7 +45,10 @@ function ProductsContent() {
     const fetchProducts = async () => {
       let url = `${API_URL}/products/?limit=500`;
 
-      if (categoryFilter) url += `&category=${categoryFilter}`;
+      // ✅ Mapping slug → nom réel en DB
+      const categoryParam = categoryFilter ? categoryMapping[categoryFilter] : null;
+      if (categoryParam) url += `&category=${encodeURIComponent(categoryParam)}`;
+
       if (minPrice) url += `&min_price=${parseInt(minPrice) * 100}`;
       if (maxPrice) url += `&max_price=${parseInt(maxPrice) * 100}`;
 
@@ -97,20 +108,21 @@ function ProductsContent() {
   return (
     <main className="bg-[#EFDDD1] min-h-screen relative overflow-hidden">
 
-      <div className="w-full h-[208px] bg-[#FDFBF7]"></div>
+      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
+      <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      <section className="px-4 md:px-12 py-20 relative">
+      <section className="px-4 md:px-12 py-10 md:py-20 relative">
         <div className="max-w-[1542px] mx-auto">
 
           <div className="text-center mb-12">
-            <h1 className="font-serif text-[35px] md:text-[55px] text-stone-900 uppercase tracking-widest mb-6">
+            <h1 className="font-serif text-[35px] md:text-[55px] text-stone-900 uppercase tracking-widest mb-6 leading-tight">
               {getPageTitle()}
             </h1>
-            <p className="text-stone-700 text-lg font-light italic mb-12">
+            <p className="text-stone-700 text-sm md:text-lg font-light italic mb-8 md:mb-12 px-4">
               Des créations uniques pour une ambiance chaleureuse.
             </p>
 
-            <div className="flex flex-wrap justify-center items-center gap-8 md:gap-16 text-xs md:text-sm uppercase tracking-[0.15em] font-medium text-stone-500 mx-auto max-w-5xl">
+            <div className="flex flex-wrap justify-center items-center gap-4 md:gap-8 lg:gap-16 text-[10px] md:text-sm uppercase tracking-[0.15em] font-medium text-stone-500 mx-auto max-w-5xl">
               <Link href="/produits" className={`${!categoryFilter ? 'text-stone-900 border-b-2 border-stone-900' : 'hover:text-stone-900'} pb-2 transition-colors`}>
                 Tout voir
               </Link>
@@ -133,22 +145,22 @@ function ProductsContent() {
             <div className="flex justify-between items-center px-2 pb-4 border-b border-stone-300/50">
               <button
                 onClick={() => setIsFilterOpen(!isFilterOpen)}
-                className="flex items-center gap-3 group hover:opacity-70 transition-opacity text-stone-900 cursor-pointer"
+                className="flex items-center gap-2 md:gap-3 group hover:opacity-70 transition-opacity text-stone-900 cursor-pointer"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
-                <span className="uppercase tracking-[0.15em] text-xs font-medium">Filtrer</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="md:w-[20px] md:h-[20px]"><line x1="21" x2="14" y1="4" y2="4"/><line x1="10" x2="3" y1="4" y2="4"/><line x1="21" x2="12" y1="12" y2="12"/><line x1="8" x2="3" y1="12" y2="12"/><line x1="21" x2="16" y1="20" y2="20"/><line x1="12" x2="3" y1="20" y2="20"/><line x1="14" x2="14" y1="2" y2="6"/><line x1="8" x2="8" y1="10" y2="14"/><line x1="16" x2="16" y1="18" y2="22"/></svg>
+                <span className="uppercase tracking-[0.15em] text-[10px] md:text-xs font-medium">Filtrer</span>
                 {(minPrice || maxPrice) && <span className="w-2 h-2 rounded-full bg-stone-900 ml-1"></span>}
               </button>
-              <span className="text-xs text-stone-600 font-sans tracking-wide">
-                {visibleProducts.length} produits affichés sur {allFetchedProducts.length}
+              <span className="text-[10px] md:text-xs text-stone-600 font-sans tracking-wide">
+                {visibleProducts.length} produits sur {allFetchedProducts.length}
               </span>
             </div>
 
-            <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-[#FDFBF7] rounded-lg shadow-sm ${isFilterOpen ? 'max-h-64 mt-4 p-6 opacity-100' : 'max-h-0 opacity-0'}`}>
-              <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-2xl">
+            <div className={`overflow-hidden transition-all duration-300 ease-in-out bg-[#FDFBF7] rounded-lg shadow-sm ${isFilterOpen ? 'max-h-80 md:max-h-64 mt-4 p-4 md:p-6 opacity-100' : 'max-h-0 opacity-0'}`}>
+              <form onSubmit={handleFilterSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-2xl">
                 <div>
-                  <h4 className="font-serif text-stone-900 mb-4 uppercase text-xs tracking-widest">Prix (€)</h4>
-                  <div className="flex gap-4 items-center">
+                  <h4 className="font-serif text-stone-900 mb-3 md:mb-4 uppercase text-xs tracking-widest">Prix (€)</h4>
+                  <div className="flex gap-2 md:gap-4 items-center">
                     <input
                       type="number"
                       placeholder="Min"
@@ -166,11 +178,11 @@ function ProductsContent() {
                     />
                   </div>
                 </div>
-                <div className="flex items-end gap-4">
-                  <button type="submit" className="bg-stone-900 text-white px-6 py-2 uppercase text-xs tracking-widest hover:bg-stone-700 transition-colors h-[42px]">
+                <div className="flex items-end gap-4 mt-2 md:mt-0">
+                  <button type="submit" className="bg-stone-900 text-white px-4 md:px-6 py-2 uppercase text-[10px] md:text-xs tracking-widest hover:bg-stone-700 transition-colors h-[42px] flex-1 md:flex-none">
                     Appliquer
                   </button>
-                  <button type="button" onClick={handleResetFilters} className="text-stone-500 text-xs underline underline-offset-4 hover:text-stone-900 mb-3">
+                  <button type="button" onClick={handleResetFilters} className="text-stone-500 text-[10px] md:text-xs underline underline-offset-4 hover:text-stone-900 mb-3">
                     Réinitialiser
                   </button>
                 </div>
@@ -181,15 +193,21 @@ function ProductsContent() {
           {loading ? (
             <div className="py-24 text-center text-stone-600">Chargement du catalogue...</div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 transition-all duration-500">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6 transition-all duration-500">
               {visibleProducts.length > 0 ? (
                 visibleProducts.map((product) => (
-                  <ProductCard key={product.id} product={product} />
+                  <ProductCard
+                    key={product.product_id ?? product.id}
+                    product={{
+                      ...product,
+                      product_id: product.product_id ?? product.id ?? 0,
+                    }}
+                  />
                 ))
               ) : (
-                <div className="col-span-full py-24 text-center">
-                  <p className="text-xl font-serif italic text-stone-600">Aucune bougie trouvée pour ces critères.</p>
-                  <button onClick={handleResetFilters} className="inline-block mt-4 text-xs uppercase tracking-widest border-b border-black pb-1">
+                <div className="col-span-full py-24 text-center px-4">
+                  <p className="text-lg md:text-xl font-serif italic text-stone-600">Aucune bougie trouvée pour ces critères.</p>
+                  <button onClick={handleResetFilters} className="inline-block mt-4 text-[10px] md:text-xs uppercase tracking-widest border-b border-black pb-1">
                     Voir tout le catalogue
                   </button>
                 </div>
@@ -198,10 +216,10 @@ function ProductsContent() {
           )}
 
           {hasMore && !loading && (
-            <div className="mt-20 flex justify-center">
+            <div className="mt-12 md:mt-20 flex justify-center">
               <button
                 onClick={handleLoadMore}
-                className="text-stone-900 text-xs uppercase tracking-widest border-b border-stone-900 pb-1 hover:opacity-60 transition-all duration-300"
+                className="text-stone-900 text-[10px] md:text-xs uppercase tracking-widest border-b border-stone-900 pb-1 hover:opacity-60 transition-all duration-300"
               >
                 Voir plus de produits
               </button>

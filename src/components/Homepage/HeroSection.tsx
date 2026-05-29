@@ -1,15 +1,14 @@
-import Link from "next/link";
+
 
 export default function HeroSection() {
   return (
-    <section className="relative w-full h-screen flex items-center justify-center overflow-hidden">
+    <section className="relative z-0 w-full h-[100svh] flex items-center justify-center overflow-hidden">
       <img
         src="/images/herosection.png"
         alt="Ambiance Bougie"
-        className="absolute inset-0 w-full h-full object-cover"
+        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
       />
-      <div className="absolute inset-0 bg-black/40"></div>
-
+      <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
       <div className="relative z-10 text-center text-white px-4 animate-fade-in-up">
         <h1 className="font-serif italic text-5xl md:text-7xl mb-6 drop-shadow-lg">
           L&apos;art de l&apos;ambiance
@@ -19,12 +18,11 @@ export default function HeroSection() {
         </p>
         <a
           href="#collection"
-          className="border border-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-white hover:text-stone-900 transition duration-500 ease-in-out"
+          className="border border-white px-8 py-4 text-xs uppercase tracking-widest hover:bg-white hover:text-stone-900 transition duration-500 ease-in-out inline-block"
         >
           Découvrir la collection
         </a>
       </div>
-
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce text-white">
         <svg
           className="w-8 h-8 opacity-70"
