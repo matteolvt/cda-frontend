@@ -12,6 +12,12 @@ interface OrderDetail {
   total: number;
 }
 
+interface UserDetail {
+  email: string;
+  firstname: string;
+  lastname: string;
+}
+
 interface Order {
   order_id: number;
   reference: string;
@@ -19,6 +25,7 @@ interface Order {
   paid: boolean;
   address: string;
   details: OrderDetail[];
+  user_detail?: UserDetail;
 }
 
 interface Product {
@@ -40,7 +47,7 @@ export default function AdminDashboard() {
     const fetchData = async () => {
       try {
         const [ordersRes, productsRes] = await Promise.all([
-          fetch(`${API_URL}/orders/`, {
+          fetch(`${API_URL}/admin/orders/`, {
             headers: { Authorization: `Bearer ${token}` },
           }),
           fetch(`${API_URL}/products/?limit=500`, {
@@ -50,8 +57,6 @@ export default function AdminDashboard() {
 
         const ordersData = await ordersRes.json();
         const productsData = await productsRes.json();
-
-        console.log("Commandes reçues:", JSON.stringify(ordersData, null, 2));
 
         setOrders(Array.isArray(ordersData) ? ordersData : ordersData.results || []);
         setProducts(Array.isArray(productsData) ? productsData : productsData.results || []);
@@ -65,21 +70,26 @@ export default function AdminDashboard() {
     fetchData();
   }, []);
 
+  const formatPrice = (cents: number) =>
+    (Number(cents) / 100).toFixed(2).replace(".", ",");
+
+  const orderTotal = (order: Order) =>
+    (order.details || []).reduce((acc, d) => acc + Number(d.total), 0);
+
   const totalRevenue = orders
     .filter((o) => o.paid)
-    .reduce((acc, o) => acc + (o.details || []).reduce((s, d) => s + d.total, 0), 0);
+    .reduce((acc, o) => acc + orderTotal(o), 0);
 
   const paidOrders = orders.filter((o) => o.paid).length;
   const pendingOrders = orders.filter((o) => !o.paid).length;
   const lowStockProducts = products.filter((p) => p.stock < 5).length;
-  const orderTotal = (order: Order) => (order.details || []).reduce((acc, d) => acc + d.total, 0);
+
+  const capitalize = (str: string) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
   const recentOrders = [...orders]
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
     .slice(0, 5);
-
-  const formatPrice = (cents: number) =>
-    (cents / 100).toFixed(2).replace(".", ",");
 
   if (isLoading) {
     return (
@@ -156,6 +166,11 @@ export default function AdminDashboard() {
                   <p className="text-[10px] text-gray-400 mt-0.5">
                     {new Date(order.date).toLocaleDateString("fr-FR")}
                   </p>
+                  {order.user_detail && (
+                    <p className="text-[10px] text-gray-400 mt-0.5">
+                      {capitalize(order.user_detail.firstname)} {capitalize(order.user_detail.lastname)}
+                    </p>
+                  )}
                 </div>
                 <div className="flex items-center gap-4">
                   <div className="text-right">
@@ -229,6 +244,16 @@ export default function AdminDashboard() {
                   </span>
                 </div>
               </div>
+
+              {selectedOrder.user_detail && (
+                <div className="bg-gray-50 p-4 space-y-1">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">Client</p>
+                  <p className="text-sm text-gray-900 font-medium">
+                    {capitalize(selectedOrder.user_detail.firstname)} {capitalize(selectedOrder.user_detail.lastname)}
+                  </p>
+                  <p className="text-xs text-gray-500">{selectedOrder.user_detail.email}</p>
+                </div>
+              )}
 
               {selectedOrder.address && (
                 <div>
