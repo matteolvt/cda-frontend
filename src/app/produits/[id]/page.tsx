@@ -19,6 +19,7 @@ interface Product {
   image?: string;
   category?: Category;
   is_customizable: number;
+  stock?: number;
 }
 
 export default function ProductDetailPage() {
@@ -37,8 +38,9 @@ export default function ProductDetailPage() {
   const [customName, setCustomName] = useState("");
   const [customScent, setCustomScent] = useState("");
 
-  const SCENTS = ['Vanille', 'Framboise', 'Mure Myrtille', 'Fleur de Tiaré', 'Rose', 'Bois de Santal', 'Fruits Tropicaux', 'Jasmin', 'Barbe à papa', 'Bubble Gum', 'Noix de Coco', 'Fleur de Coton', 'Musty', 'Fruits rouge', 'Fraise', 'Pomme d’amour', 'Bouquet Solaire'].sort();
+  const SCENTS = ['Vanille', 'Framboise', 'Mure Myrtille', 'Fleur de Tiaré', 'Rose', 'Bois de Santal', 'Fruits Tropicaux', 'Jasmin', 'Barbe à papa', 'Bubble Gum', 'Noix de Coco', 'Fleur de Coton', 'Musty', 'Fruits rouge', 'Fraise', 'Pomme d&aspamour', 'Bouquet Solaire'].sort();
   const productImages = product?.image ? [product.image, product.image, product.image, product.image] : [];
+  const isSoldOut = product?.stock !== undefined && product.stock === 0;
 
   useEffect(() => {
     fetch(`https://backcda-api.onrender.com/api/products/?limit=500`)
@@ -47,7 +49,6 @@ export default function ProductDetailPage() {
         const items = data.results || data;
         const foundProduct = items.find((p: Product) => p.product_id.toString() === productId);
         setProduct(foundProduct || null);
-        
         setRelatedProducts(items.filter((p: Product) => p.product_id !== foundProduct?.product_id).slice(0, 4));
         setLoading(false);
       })
@@ -66,6 +67,7 @@ export default function ProductDetailPage() {
 
   const handleAddToCart = async () => {
     if (!product) return;
+    if (isSoldOut) return;
 
     if (product.is_customizable === 1 && (!customName || !customScent)) {
       alert("Veuillez remplir tous les champs de personnalisation obligatoires (*)");
@@ -89,10 +91,8 @@ export default function ProductDetailPage() {
 
   return (
     <main className="bg-[#EFDDD1] min-h-screen">
-      {/* 1. NAVBAR SPACE */}
       <div className="w-full h-[120px] md:h-[208px] bg-[#FFF9F3]"></div>
 
-      {/* 2. MAIN SECTION */}
       <section className="py-10 md:py-20">
         <div className="max-w-[1542px] mx-auto px-4 md:px-12">
           
@@ -105,16 +105,28 @@ export default function ProductDetailPage() {
           </nav>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-start">
-            
-            {/* --- COLONNE GAUCHE : GALERIE --- */}
+
             <div className="flex flex-col gap-6 lg:sticky lg:top-32">
               <div className="relative aspect-[4/5] bg-white overflow-hidden shadow-sm group select-none flex items-center justify-center">
                 {productImages.length > 0 ? (
-                  <img src={productImages[currentImageIndex]} alt={product.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+                  <img
+                    src={productImages[currentImageIndex]}
+                    alt={product.name}
+                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-105 ${isSoldOut ? 'opacity-50 grayscale' : ''}`}
+                  />
                 ) : (
-                   <div className="text-stone-300">
-                     <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
-                   </div>
+                  <div className="text-stone-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><rect width="18" height="18" x="3" y="3" rx="2" ry="2"/><circle cx="9" cy="9" r="2"/><path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21"/></svg>
+                  </div>
+                )}
+
+                {/* Badge Sold Out */}
+                {isSoldOut && (
+                  <div className="absolute inset-0 flex items-center justify-center z-10 pointer-events-none">
+                    <span className="bg-white/90 text-stone-900 text-[10px] uppercase tracking-widest font-medium px-6 py-3 border border-stone-200">
+                      Épuisé
+                    </span>
+                  </div>
                 )}
                 
                 {productImages.length > 1 && (
@@ -123,41 +135,45 @@ export default function ProductDetailPage() {
                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
                     </button>
                     <button onClick={nextImage} className="absolute right-4 top-1/2 -translate-y-1/2 bg-white/80 hover:bg-stone-900 hover:text-white text-stone-900 p-3 rounded-full shadow-md transition-all opacity-0 group-hover:opacity-100 z-20">
-                       <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
                     </button>
                   </>
                 )}
               </div>
 
-              {/* Thumbnails */}
               {productImages.length > 1 && (
                 <div className="grid grid-cols-6 gap-3">
                   {productImages.map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)} className={`aspect-square bg-white overflow-hidden border transition-all ${idx === currentImageIndex ? 'border-stone-900 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'}`}>
-                      <img src={img} className="w-full h-full object-cover pointer-events-none" />
+                      <img src={img} alt={`Miniature ${idx + 1}`} className="w-full h-full object-cover pointer-events-none" />
                     </button>
                   ))}
                 </div>
               )}
             </div>
 
-            {/* --- COLONNE DROITE : INFO --- */}
             <div className="flex flex-col pt-0 lg:pt-4">
               <span className="text-stone-500 text-xs uppercase tracking-[0.2em] mb-3 md:mb-4">
                 {product.category?.name || "Bougie"}
               </span>
               <h1 className="font-serif text-2xl sm:text-3xl md:text-[50px] text-stone-900 leading-tight mb-4 md:mb-6">{product.name}</h1>
               
-              <p className="text-xl md:text-2xl text-stone-900 font-medium mb-6 md:mb-8">
-                {(product.price / 100).toFixed(2).replace('.', ',')} €
-              </p>
+              <div className="flex items-center gap-4 mb-6 md:mb-8">
+                <p className={`text-xl md:text-2xl font-medium ${isSoldOut ? 'text-stone-400' : 'text-stone-900'}`}>
+                  {(product.price / 100).toFixed(2).replace('.', ',')} €
+                </p>
+                {isSoldOut && (
+                  <span className="text-[10px] uppercase tracking-widest text-red-600 border border-red-200 px-2 py-1">
+                    Épuisé
+                  </span>
+                )}
+              </div>
 
               <div className="text-stone-600 font-light leading-relaxed mb-8 md:mb-10 text-sm md:text-lg">
                 <p>{product.description.substring(0, 150)}...</p>
               </div>
 
-              {/* BLOC PERSONNALISATION */}
-              {product.is_customizable === 1 && (
+              {product.is_customizable === 1 && !isSoldOut && (
                 <div className="mb-8 md:mb-10 p-4 md:p-6 bg-[#FDFBF7] border border-stone-200 shadow-sm">
                   <h3 className="font-serif text-lg md:text-xl text-stone-900 mb-4 md:mb-6 border-b border-stone-200 pb-2">Personnalisation</h3>
                   <div className="flex flex-col gap-4 md:gap-5">
@@ -194,29 +210,41 @@ export default function ProductDetailPage() {
                 </div>
               )}
 
-              {/* BOUTONS D'ACTION (QUANTITÉ + AJOUT) - MODIFIÉ POUR LE RESPONSIVE */}
               <div className="flex flex-row gap-2 sm:gap-4 mb-8 md:mb-12 pb-8 md:pb-12 border-b border-stone-200">
-                {/* Sélecteur de quantité : réduit sur mobile (w-[100px]) */}
-                <div className="flex items-center border border-stone-300 w-[100px] sm:w-32 h-[50px] sm:h-[54px] shrink-0 bg-white/50 justify-between">
-                  <button onClick={() => handleQtyChange(-1)} className="w-8 sm:w-10 h-full text-stone-500 hover:text-stone-900 text-lg flex items-center justify-center">-</button>
-                  <input 
-                    type="number" 
-                    value={quantity} 
-                    readOnly 
-                    className="w-full h-full text-center border-none outline-none text-stone-900 font-medium bg-transparent pointer-events-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
-                  />
-                  <button onClick={() => handleQtyChange(1)} className="w-8 sm:w-10 h-full text-stone-500 hover:text-stone-900 text-lg flex items-center justify-center">+</button>
-                </div>
+                {!isSoldOut && (
+                  <div className="flex items-center border border-stone-300 w-[100px] sm:w-32 h-[50px] sm:h-[54px] shrink-0 bg-white/50 justify-between">
+                    <button onClick={() => handleQtyChange(-1)} className="w-8 sm:w-10 h-full text-stone-500 hover:text-stone-900 text-lg flex items-center justify-center">-</button>
+                    <input 
+                      type="number" 
+                      value={quantity} 
+                      readOnly 
+                      className="w-full h-full text-center border-none outline-none text-stone-900 font-medium bg-transparent pointer-events-none p-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none" 
+                    />
+                    <button onClick={() => handleQtyChange(1)} className="w-8 sm:w-10 h-full text-stone-500 hover:text-stone-900 text-lg flex items-center justify-center">+</button>
+                  </div>
+                )}
                 
-                {/* Bouton d'ajout : prend l'espace restant, texte optimisé pour mobile */}
-                <button onClick={handleAddToCart} className="flex-1 bg-[#6F1E1A] text-white h-[50px] sm:h-[54px] uppercase tracking-widest sm:tracking-[0.15em] text-[10px] sm:text-xs font-medium hover:bg-[#43120F] transition-colors flex items-center justify-center gap-2 sm:gap-3 px-2">
-                  <span>Ajouter <span className="hidden min-[380px]:inline">au panier</span></span>
-                  <span className="w-px h-4 bg-white/20"></span>
-                  <span className="whitespace-nowrap">{((product.price * quantity) / 100).toFixed(2).replace('.', ',')} €</span>
+                <button
+                  onClick={handleAddToCart}
+                  disabled={isSoldOut}
+                  className={`flex-1 h-[50px] sm:h-[54px] uppercase tracking-widest sm:tracking-[0.15em] text-[10px] sm:text-xs font-medium transition-colors flex items-center justify-center gap-2 sm:gap-3 px-2 ${
+                    isSoldOut
+                      ? 'bg-stone-200 text-stone-400 cursor-not-allowed'
+                      : 'bg-[#6F1E1A] text-white hover:bg-[#43120F]'
+                  }`}
+                >
+                  {isSoldOut ? (
+                    <span>Produit épuisé</span>
+                  ) : (
+                    <>
+                      <span>Ajouter <span className="hidden min-[380px]:inline">au panier</span></span>
+                      <span className="w-px h-4 bg-white/20"></span>
+                      <span className="whitespace-nowrap">{((product.price * quantity) / 100).toFixed(2).replace('.', ',')} €</span>
+                    </>
+                  )}
                 </button>
               </div>
 
-              {/* ACCORDÉONS */}
               <div className="flex flex-col gap-0 [&_details>summary::-webkit-details-marker]:hidden">
                 <details className="group py-5 md:py-6 border-b border-stone-200 cursor-pointer" open>
                   <summary className="flex justify-between items-center list-none outline-none">
@@ -243,22 +271,19 @@ export default function ProductDetailPage() {
                 </details>
               </div>
 
-              {/* RÉASSURANCE LIVRAISON */}
               <div className="grid grid-cols-2 gap-2 sm:gap-4 mt-8 md:mt-12 pt-6 md:pt-8">
                 <div className="flex items-center gap-2 sm:gap-3">
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg>
                   <span className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider text-stone-500">Expédition 48h</span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-3">
-                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-stone-400 shrink-0"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/><path d="m9 12 2 2 4-4"/></svg>
                   <span className="text-[9px] sm:text-[10px] md:text-xs uppercase tracking-wider text-stone-500">Paiement Sécurisé</span>
                 </div>
               </div>
-              
             </div>
           </div>
 
-          {/* --- SECTION : VOUS AIMEREZ AUSSI --- */}
           <div className="mt-20 md:mt-32 border-t border-stone-200 pt-12 md:pt-20">
             <h3 className="font-serif text-2xl md:text-3xl text-center text-stone-900 mb-8 md:mb-12">Vous aimerez aussi</h3>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 md:gap-6">

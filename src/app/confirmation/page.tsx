@@ -75,3 +75,13 @@ export default function ConfirmationPage() {
     </Suspense>
   );
 }
+
+export default function ConfirmationPage() {
+  return (
+    <div className="min-h-screen bg-stone-50 flex items-center justify-center px-4">
+      <Suspense fallback={<div className="text-stone-500 text-sm uppercase tracking-widest animate-pulse">Chargement de votre confirmation...</div>}>
+        <ConfirmationContent />
+      </Suspense>
+    </div>
+  );
+}
