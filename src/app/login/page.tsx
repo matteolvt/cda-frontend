@@ -29,12 +29,9 @@ export default function LoginPage() {
 
   return (
     <>
-      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
       <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      {/* Ajustement du padding vertical (py-10 au lieu de py-20 sur mobile) */}
       <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-10 md:py-20 px-4">
-        {/* Ajustement du padding intérieur de la carte sur mobile (p-6) */}
         <div className="bg-white w-full max-w-[500px] p-6 sm:p-10 md:p-16 shadow-sm">
           
           <div className="text-center mb-8 md:mb-12">
@@ -89,11 +86,7 @@ export default function LoginPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors focus:outline-none"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5 block" />
-                  ) : (
-                    <Eye className="w-5 h-5 block" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5 block" /> : <Eye className="w-5 h-5 block" />}
                 </button>
               </div>
             </div>
@@ -105,6 +98,16 @@ export default function LoginPage() {
             >
               {isLoading ? "Connexion..." : "Se connecter"}
             </button>
+
+            {/* Mot de passe oublié */}
+            <div className="text-center">
+              <Link
+                href="/forgot-password"
+                className="text-stone-400 text-[10px] uppercase tracking-widest hover:text-stone-900 transition-colors"
+              >
+                Mot de passe oublié ?
+              </Link>
+            </div>
 
             <div className="mt-8 md:mt-12 pt-6 md:pt-8 border-t border-stone-100 text-center">
               <p className="text-stone-400 text-[10px] md:text-[11px] uppercase tracking-widest mb-3 md:mb-4">
