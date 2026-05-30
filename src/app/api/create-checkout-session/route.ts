@@ -8,15 +8,25 @@ interface JwtPayload {
   user_id: string;
 }
 
+interface Address {
+  firstName: string;
+  lastName: string;
+  email: string;
+  address: string;
+  addressComplement: string;
+  city: string;
+  postalCode: string;
+  country: string;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { items, token } = await req.json();
+    const { items, token, address } = await req.json();
 
     if (!items || items.length === 0) {
       return NextResponse.json({ error: "Panier vide" }, { status: 400 });
     }
 
-    // Extraire le user_id depuis le token JWT
     let userId = "";
     try {
       const decoded = jwtDecode<JwtPayload>(token);
@@ -39,6 +49,11 @@ export async function POST(req: NextRequest) {
       quantity: item.quantity,
     }));
 
+    const addr = address as Address | undefined;
+    const formattedAddress = addr
+      ? `${addr.address}${addr.addressComplement ? ", " + addr.addressComplement : ""}, ${addr.postalCode} ${addr.city}, ${addr.country}`
+      : "";
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items,
@@ -53,6 +68,7 @@ export async function POST(req: NextRequest) {
             quantity: item.quantity,
           }))
         ),
+        address: formattedAddress,
       },
     });
 
