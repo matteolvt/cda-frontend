@@ -12,6 +12,12 @@ interface OrderDetail {
   total: number;
 }
 
+interface UserDetail {
+  email: string;
+  firstname: string;
+  lastname: string;
+}
+
 interface Order {
   order_id: number;
   reference: string;
@@ -20,6 +26,7 @@ interface Order {
   address: string;
   details: OrderDetail[];
   user: number;
+  user_detail?: UserDetail;
 }
 
 export default function AdminCommandesPage() {
@@ -32,7 +39,7 @@ export default function AdminCommandesPage() {
 
   const fetchOrders = async () => {
     try {
-      const res = await fetch(`${API_URL}/orders/`, {
+      const res = await fetch(`${API_URL}/admin/orders/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
@@ -48,10 +55,16 @@ export default function AdminCommandesPage() {
     fetchOrders();
   }, []);
 
+  const capitalize = (str: string) =>
+    str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
+
   const filtered = orders.filter(
     (o) =>
       o.reference.toLowerCase().includes(search.toLowerCase()) ||
-      o.address?.toLowerCase().includes(search.toLowerCase())
+      o.address?.toLowerCase().includes(search.toLowerCase()) ||
+      o.user_detail?.email.toLowerCase().includes(search.toLowerCase()) ||
+      o.user_detail?.firstname.toLowerCase().includes(search.toLowerCase()) ||
+      o.user_detail?.lastname.toLowerCase().includes(search.toLowerCase())
   );
 
   const formatPrice = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
@@ -71,7 +84,7 @@ export default function AdminCommandesPage() {
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
         <input
           type="text"
-          placeholder="Rechercher par référence ou adresse..."
+          placeholder="Rechercher par référence, adresse ou client..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full pl-10 pr-4 py-3 border border-gray-200 bg-white text-sm text-gray-900 focus:outline-none focus:border-gray-400"
@@ -92,6 +105,7 @@ export default function AdminCommandesPage() {
             <thead>
               <tr className="border-b border-gray-100">
                 <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Référence</th>
+                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden md:table-cell">Client</th>
                 <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden md:table-cell">Date</th>
                 <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden lg:table-cell">Adresse</th>
                 <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Total</th>
@@ -108,6 +122,18 @@ export default function AdminCommandesPage() {
                       <p className="text-xs font-medium text-gray-900 uppercase tracking-widest">
                         #{order.reference}
                       </p>
+                    </td>
+                    <td className="px-6 py-4 hidden md:table-cell">
+                      {order.user_detail ? (
+                        <div>
+                          <p className="text-xs text-gray-900">
+                            {capitalize(order.user_detail.firstname)} {capitalize(order.user_detail.lastname)}
+                          </p>
+                          <p className="text-[10px] text-gray-400">{order.user_detail.email}</p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-400">—</p>
+                      )}
                     </td>
                     <td className="px-6 py-4 hidden md:table-cell">
                       <p className="text-xs text-gray-600">
@@ -176,6 +202,17 @@ export default function AdminCommandesPage() {
                   </span>
                 </div>
               </div>
+
+              {/* Infos client */}
+              {selectedOrder.user_detail && (
+                <div className="bg-gray-50 p-4 space-y-1">
+                  <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">Client</p>
+                  <p className="text-sm text-gray-900 font-medium">
+                    {capitalize(selectedOrder.user_detail.firstname)} {capitalize(selectedOrder.user_detail.lastname)}
+                  </p>
+                  <p className="text-xs text-gray-500">{selectedOrder.user_detail.email}</p>
+                </div>
+              )}
 
               {/* Adresse */}
               {selectedOrder.address && (

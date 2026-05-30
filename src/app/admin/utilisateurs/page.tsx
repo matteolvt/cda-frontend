@@ -23,7 +23,7 @@ export default function AdminUtilisateursPage() {
 
   const fetchUsers = async () => {
     try {
-      const res = await fetch(`${API_URL}/users/`, {
+      const res = await fetch(`${API_URL}/admin/users/`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 

@@ -2,19 +2,62 @@
 
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
+import { useState } from "react";
+import { API_URL } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function CartPage() {
   const { cart, updateQuantity, removeItem, total } = useCart();
   const formattedTotal = (total / 100).toFixed(2).replace('.', ',');
+  const [stockErrors, setStockErrors] = useState<string[]>([]);
+  const [checkingStock, setCheckingStock] = useState(false);
+  const router = useRouter();
+
+  const handleCheckout = async () => {
+    setCheckingStock(true);
+    setStockErrors([]);
+
+    try {
+      const errors: string[] = [];
+
+      await Promise.all(
+        cart.map(async (item) => {
+          const productId = item.product.id || item.id;
+          const res = await fetch(`${API_URL}/products/${productId}/`);
+          if (!res.ok) {
+            errors.push(`Impossible de vérifier le stock de "${item.product.name}".`);
+            return;
+          }
+          const product = await res.json();
+          const stock = product.stock ?? 0;
+
+          if (stock === 0) {
+            errors.push(`"${item.product.name}" est en rupture de stock.`);
+          } else if (stock < item.quantity) {
+            errors.push(`"${item.product.name}" : seulement ${stock} exemplaire${stock > 1 ? 's' : ''} disponible${stock > 1 ? 's' : ''}.`);
+          }
+        })
+      );
+
+      if (errors.length > 0) {
+        setStockErrors(errors);
+        return;
+      }
+
+      router.push("/commande");
+    } catch {
+      setStockErrors(["Une erreur est survenue lors de la vérification des stocks."]);
+    } finally {
+      setCheckingStock(false);
+    }
+  };
 
   return (
     <main>
-      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
       <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
       <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] py-10 md:py-12 px-4 md:px-12">
         <div className="max-w-[1200px] mx-auto">
-          {/* Ajustement du titre et de la marge du bas sur mobile */}
           <h1 className="font-serif text-2xl md:text-3xl text-stone-900 uppercase tracking-[0.2em] mb-8 md:mb-12 text-center">
             Votre Panier
           </h1>
@@ -71,12 +114,24 @@ export default function CartPage() {
 
                           <td className="p-4 text-center block sm:table-cell mt-2 sm:mt-0">
                             <div className="inline-flex items-center border border-stone-200">
-                              <button
-                                onClick={() => updateQuantity(item.id, -1)}
-                                className="w-8 h-8 flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-colors"
-                              >
-                                -
-                              </button>
+                              {item.quantity === 1 ? (
+                                <button
+                                  onClick={() => removeItem(item.id)}
+                                  className="w-8 h-8 flex items-center justify-center text-stone-400 hover:text-red-500 transition-colors"
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                    <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                  </svg>
+                                </button>
+                              ) : (
+                                <button
+                                  onClick={() => updateQuantity(item.id, -1)}
+                                  className="w-8 h-8 flex items-center justify-center text-stone-500 hover:bg-stone-100 transition-colors"
+                                >
+                                  -
+                                </button>
+                              )}
                               <span className="w-8 h-8 flex items-center justify-center text-xs font-bold text-stone-900">
                                 {item.quantity}
                               </span>
@@ -129,12 +184,24 @@ export default function CartPage() {
                     <span className="font-bold text-base uppercase tracking-widest">Total</span>
                     <span className="font-bold text-xl">{formattedTotal} €</span>
                   </div>
-                  <Link
-                    href="/commande"
-                    className="block text-center w-full bg-stone-900 text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-stone-800 transition-colors shadow-lg mb-4"
+
+                  {/* Erreurs stock */}
+                  {stockErrors.length > 0 && (
+                    <div className="bg-red-50 border border-red-200 p-4 mb-4 space-y-1">
+                      {stockErrors.map((err, i) => (
+                        <p key={i} className="text-red-700 text-[10px] uppercase tracking-widest">{err}</p>
+                      ))}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleCheckout}
+                    disabled={checkingStock}
+                    className="block text-center w-full bg-stone-900 text-white py-4 uppercase tracking-[0.2em] text-[10px] md:text-xs font-bold hover:bg-stone-800 transition-colors shadow-lg mb-4 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    Passer au paiement
-                  </Link>
+                    {checkingStock ? "Vérification..." : "Passer au paiement"}
+                  </button>
+
                   <Link
                     href="/produits"
                     className="block text-center text-[10px] md:text-xs text-stone-500 underline hover:text-stone-900 uppercase tracking-wider"
