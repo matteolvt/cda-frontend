@@ -53,7 +53,6 @@ export default function AdminProduitsPage() {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      console.log("Réponse produits:", JSON.stringify(data, null, 2));
       setProducts(Array.isArray(data) ? data : data.results || []);
     } catch {
       console.error("Erreur chargement produits");
@@ -87,7 +86,6 @@ export default function AdminProduitsPage() {
   };
 
   const handleOpenEdit = (product: Product) => {
-    console.log("Produit reçu:", JSON.stringify(product, null, 2));
     setEditingProduct(product);
     setForm({
       name: product.name,
@@ -166,7 +164,7 @@ export default function AdminProduitsPage() {
     p.name.toLowerCase().includes(search.toLowerCase())
   );
 
-  const formatPrice = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
+  const formatPrice = (cents: number) => (Number(cents) / 100).toFixed(2).replace(".", ",");
 
   return (
     <div className="space-y-6">
@@ -204,7 +202,7 @@ export default function AdminProduitsPage() {
         />
       </div>
 
-      <div className="bg-white border border-gray-100 shadow-sm overflow-x-auto">
+      <div className="bg-white border border-gray-100 shadow-sm">
         {isLoading ? (
           <div className="px-6 py-12 text-center">
             <p className="text-gray-400 text-xs uppercase tracking-widest animate-pulse">Chargement...</p>
@@ -214,69 +212,108 @@ export default function AdminProduitsPage() {
             <p className="text-gray-400 text-xs uppercase tracking-widest">Aucun produit</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Nom</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden md:table-cell">Catégories</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Prix</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Stock</th>
-                <th className="px-6 py-4 text-right text-[10px] uppercase tracking-widest text-gray-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
+          <>
+            {/* Mobile : cartes */}
+            <div className="md:hidden divide-y divide-gray-50">
               {filtered.map((product) => (
-                <tr key={product.product_id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-gray-900">{product.name}</p>
-                    {product.customizable && (
-                      <span className="text-[10px] text-blue-600 uppercase tracking-widest">Personnalisable</span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 hidden md:table-cell">
+                <div key={product.product_id} className="p-4 space-y-2">
+                  <p className="text-sm text-gray-900 font-medium">{product.name}</p>
+                  {product.customizable && (
+                    <span className="text-[10px] text-blue-600 uppercase tracking-widest">Personnalisable</span>
+                  )}
+                  {product.categories.length > 0 && (
                     <div className="flex flex-wrap gap-1">
                       {product.categories.map((c) => (
-                        <span key={c.category_id} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-widest">
+                        <span key={c.category_id} className="px-2 py-0.5 bg-gray-100 text-gray-500 text-[9px] uppercase tracking-widest">
                           {c.name}
                         </span>
                       ))}
                     </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <p className="text-sm text-gray-900">{formatPrice(product.price)} €</p>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className={`text-sm font-medium ${
-                      product.stock === 0 ? "text-red-600" :
-                      product.stock < 5 ? "text-orange-500" :
-                      "text-green-600"
-                    }`}>
-                      {product.stock}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => handleOpenEdit(product)}
-                        className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
-                      >
+                  )}
+                  <div className="flex items-center justify-between pt-1">
+                    <div className="flex items-center gap-4 text-xs">
+                      <span className="text-gray-900">{formatPrice(product.price)} €</span>
+                      <span className={`font-medium ${
+                        product.stock === 0 ? "text-red-600" :
+                        product.stock < 5 ? "text-orange-500" :
+                        "text-green-600"
+                      }`}>
+                        {product.stock === 0 ? "Rupture" : `${product.stock} en stock`}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <button onClick={() => handleOpenEdit(product)} className="p-2 text-gray-400 hover:text-gray-900">
                         <Pencil size={16} />
                       </button>
-                      <button
-                        onClick={() => setDeleteConfirm(product.product_id)}
-                        className="p-2 text-gray-400 hover:text-red-600 transition-colors"
-                      >
+                      <button onClick={() => setDeleteConfirm(product.product_id)} className="p-2 text-gray-400 hover:text-red-600">
                         <Trash2 size={16} />
                       </button>
                     </div>
-                  </td>
-                </tr>
+                  </div>
+                </div>
               ))}
-            </tbody>
-          </table>
+            </div>
+
+            {/* Desktop : tableau */}
+            <table className="w-full hidden md:table">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Nom</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Catégories</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Prix</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Stock</th>
+                  <th className="px-6 py-4 text-right text-[10px] uppercase tracking-widest text-gray-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {filtered.map((product) => (
+                  <tr key={product.product_id} className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-900">{product.name}</p>
+                      {product.customizable && (
+                        <span className="text-[10px] text-blue-600 uppercase tracking-widest">Personnalisable</span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex flex-wrap gap-1">
+                        {product.categories.map((c) => (
+                          <span key={c.category_id} className="px-2 py-0.5 bg-gray-100 text-gray-600 text-[10px] uppercase tracking-widest">
+                            {c.name}
+                          </span>
+                        ))}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <p className="text-sm text-gray-900">{formatPrice(product.price)} €</p>
+                    </td>
+                    <td className="px-6 py-4">
+                      <span className={`text-sm font-medium ${
+                        product.stock === 0 ? "text-red-600" :
+                        product.stock < 5 ? "text-orange-500" :
+                        "text-green-600"
+                      }`}>
+                        {product.stock}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="flex items-center justify-end gap-2">
+                        <button onClick={() => handleOpenEdit(product)} className="p-2 text-gray-400 hover:text-gray-900 transition-colors">
+                          <Pencil size={16} />
+                        </button>
+                        <button onClick={() => setDeleteConfirm(product.product_id)} className="p-2 text-gray-400 hover:text-red-600 transition-colors">
+                          <Trash2 size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 
+      {/* Modal création/édition */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-lg max-h-[90vh] overflow-y-auto">
@@ -380,7 +417,8 @@ export default function AdminProduitsPage() {
         </div>
       )}
 
-      {deleteConfirm && (
+      {/* Modal suppression */}
+      {deleteConfirm !== null && (
         <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
           <div className="bg-white w-full max-w-sm p-6 space-y-4">
             <h2 className="text-xs uppercase tracking-widest text-gray-900 font-medium">
