@@ -1,3 +1,4 @@
+import Link from "next/link";
 import AboutValues from "../../components/About/AboutValues";
 import ReassuranceSection from "../../components/Global/ReassuranceSection";
 

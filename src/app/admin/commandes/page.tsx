@@ -67,8 +67,10 @@ export default function AdminCommandesPage() {
       o.user_detail?.lastname.toLowerCase().includes(search.toLowerCase())
   );
 
-  const formatPrice = (cents: number) => (cents / 100).toFixed(2).replace(".", ",");
-  const orderTotal = (order: Order) => order.details.reduce((acc, d) => acc + d.total, 0);
+  const sorted = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+  const formatPrice = (cents: number) => (Number(cents) / 100).toFixed(2).replace(".", ",");
+  const orderTotal = (order: Order) => (order.details || []).reduce((acc, d) => acc + Number(d.total), 0);
 
   return (
     <div className="space-y-6">
@@ -91,7 +93,7 @@ export default function AdminCommandesPage() {
         />
       </div>
 
-      <div className="bg-white border border-gray-100 shadow-sm overflow-x-auto">
+      <div className="bg-white border border-gray-100 shadow-sm">
         {isLoading ? (
           <div className="px-6 py-12 text-center">
             <p className="text-gray-400 text-xs uppercase tracking-widest animate-pulse">Chargement...</p>
@@ -101,29 +103,64 @@ export default function AdminCommandesPage() {
             <p className="text-gray-400 text-xs uppercase tracking-widest">Aucune commande</p>
           </div>
         ) : (
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-100">
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Référence</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden md:table-cell">Client</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden md:table-cell">Date</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden lg:table-cell">Adresse</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Total</th>
-                <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Statut</th>
-                <th className="px-6 py-4 text-right text-[10px] uppercase tracking-widest text-gray-400">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-gray-50">
-              {filtered
-                .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-                .map((order) => (
+          <>
+            {/* Mobile : cartes */}
+            <div className="md:hidden divide-y divide-gray-50">
+              {sorted.map((order) => (
+                <button
+                  key={order.order_id}
+                  onClick={() => setSelectedOrder(order)}
+                  className="w-full p-4 text-left space-y-2 hover:bg-gray-50 transition-colors"
+                >
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-medium text-gray-900 uppercase tracking-widest">
+                      #{order.reference}
+                    </p>
+                    <span className={`text-[10px] uppercase tracking-widest font-medium ${
+                      order.paid ? "text-green-600" : "text-orange-500"
+                    }`}>
+                      {order.paid ? "Payée" : "En attente"}
+                    </span>
+                  </div>
+                  {order.user_detail && (
+                    <p className="text-xs text-gray-500">
+                      {capitalize(order.user_detail.firstname)} {capitalize(order.user_detail.lastname)}
+                    </p>
+                  )}
+                  <div className="flex items-center justify-between">
+                    <p className="text-[10px] text-gray-400">
+                      {new Date(order.date).toLocaleDateString("fr-FR")}
+                    </p>
+                    <p className="text-sm font-serif text-gray-900">
+                      {formatPrice(orderTotal(order))} €
+                    </p>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {/* Desktop : tableau */}
+            <table className="w-full hidden md:table">
+              <thead>
+                <tr className="border-b border-gray-100">
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Référence</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Client</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Date</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400 hidden lg:table-cell">Adresse</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Total</th>
+                  <th className="px-6 py-4 text-left text-[10px] uppercase tracking-widest text-gray-400">Statut</th>
+                  <th className="px-6 py-4 text-right text-[10px] uppercase tracking-widest text-gray-400">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-gray-50">
+                {sorted.map((order) => (
                   <tr key={order.order_id} className="hover:bg-gray-50 transition-colors">
                     <td className="px-6 py-4">
                       <p className="text-xs font-medium text-gray-900 uppercase tracking-widest">
                         #{order.reference}
                       </p>
                     </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
+                    <td className="px-6 py-4">
                       {order.user_detail ? (
                         <div>
                           <p className="text-xs text-gray-900">
@@ -135,7 +172,7 @@ export default function AdminCommandesPage() {
                         <p className="text-xs text-gray-400">—</p>
                       )}
                     </td>
-                    <td className="px-6 py-4 hidden md:table-cell">
+                    <td className="px-6 py-4">
                       <p className="text-xs text-gray-600">
                         {new Date(order.date).toLocaleDateString("fr-FR")}
                       </p>
@@ -169,8 +206,9 @@ export default function AdminCommandesPage() {
                     </td>
                   </tr>
                 ))}
-            </tbody>
-          </table>
+              </tbody>
+            </table>
+          </>
         )}
       </div>
 
@@ -187,7 +225,6 @@ export default function AdminCommandesPage() {
 
             <div className="p-6 space-y-6">
 
-              {/* Infos générales */}
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Date</p>
@@ -203,7 +240,6 @@ export default function AdminCommandesPage() {
                 </div>
               </div>
 
-              {/* Infos client */}
               {selectedOrder.user_detail && (
                 <div className="bg-gray-50 p-4 space-y-1">
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">Client</p>
@@ -214,7 +250,6 @@ export default function AdminCommandesPage() {
                 </div>
               )}
 
-              {/* Adresse */}
               {selectedOrder.address && (
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Adresse de livraison</p>
@@ -222,11 +257,10 @@ export default function AdminCommandesPage() {
                 </div>
               )}
 
-              {/* Produits */}
               <div>
                 <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-3">Produits</p>
                 <div className="space-y-3">
-                  {selectedOrder.details.map((detail) => (
+                  {(selectedOrder.details || []).map((detail) => (
                     <div key={detail.order_detail_id} className="flex justify-between items-center py-2 border-b border-gray-50">
                       <div>
                         <p className="text-sm text-gray-900">{detail.name}</p>
@@ -242,7 +276,6 @@ export default function AdminCommandesPage() {
                 </div>
               </div>
 
-              {/* Total */}
               <div className="flex justify-between items-center pt-2 border-t border-gray-200">
                 <p className="text-xs uppercase tracking-widest text-gray-900 font-medium">Total</p>
                 <p className="text-lg font-serif text-gray-900">
