@@ -7,7 +7,7 @@ import { CartProvider } from "@/context/CartContext";
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  const isAdmin = pathname.startsWith("/admin") || pathname === "/search";
 
   if (isAdmin) return <>{children}</>;
 

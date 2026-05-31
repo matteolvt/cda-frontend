@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useCart } from "@/context/CartContext";
 import { authService } from "@/services/auth";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, User, UserCheck, ShoppingCart } from "lucide-react";
 
 export default function Navbar() {
@@ -14,6 +14,10 @@ export default function Navbar() {
   const { cart, isLogged } = useCart();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
+  const [isScrolled, setIsScrolled] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollY = useRef(0);
+
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   const handleLogout = (e: React.MouseEvent) => {
@@ -22,7 +26,6 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    // eslint-disable-next-line
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
@@ -37,9 +40,45 @@ export default function Navbar() {
     };
   }, [isMobileMenuOpen]);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      setIsScrolled(currentScrollY > 50);
+
+      if (currentScrollY > lastScrollY.current && currentScrollY > 100) {
+        setIsVisible(false);
+      } else {
+        setIsVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
+  // Position initiale homepage = transparent, sinon toujours fond
+  const isTransparent = isHome && !isScrolled;
+
+  const navClasses = [
+    isScrolled ? "fixed" : "absolute",
+    isTransparent ? "text-white" : "bg-white/95 backdrop-blur-md shadow-sm text-stone-900",
+    isVisible ? "translate-y-0" : "-translate-y-full",
+    isScrolled ? "py-4" : "py-8",
+    "transition-all duration-300",
+  ].join(" ");
+
+  const logoClasses = [
+    "w-auto block transition-all duration-300",
+    isScrolled ? "h-16 md:h-20" : "h-16 md:h-36",
+    isTransparent ? "" : "invert",
+  ].join(" ");
+
   return (
     <>
-      <nav className={`absolute top-0 left-0 w-full z-50 flex justify-between items-center md:grid md:grid-cols-3 px-6 md:px-12 py-8 uppercase tracking-[0.2em] text-[13px] font-light transition-colors duration-300 ${isHome ? 'text-white' : 'text-stone-900'}`}>
+      <nav className={`${navClasses} top-0 left-0 w-full z-50 flex justify-between items-center md:grid md:grid-cols-3 px-6 md:px-12 uppercase tracking-[0.2em] text-[13px] font-light`}>
 
         <div className="flex md:justify-center items-center flex-1 md:flex-none">
           <button 
@@ -63,16 +102,16 @@ export default function Navbar() {
             <img
               src="/images/logo.svg"
               alt="Shad's Candle"
-              className={`h-16 md:h-36 w-auto block transition-all duration-300 ${isHome ? '' : 'invert'}`}
+              className={logoClasses}
             />
           </Link>
         </div>
 
         <div className="flex justify-end md:justify-center items-center gap-4 md:gap-6 flex-1 md:flex-none">
 
-          <button className="flex items-center justify-center hover:opacity-60 transition duration-300">
+          <Link href="/search" className="flex items-center justify-center hover:opacity-60 transition duration-300">
             <Search size={20} />
-          </button>
+          </Link>
 
           <div className="relative group flex items-center justify-center">
             {isLogged ? (
@@ -108,16 +147,13 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Menu Mobile : Version 1 "Dark Frosted Glass"
-      */}
+      {/* Menu Mobile */}
       <div 
         className={`fixed inset-0 bg-stone-900/60 backdrop-blur-xl z-[60] flex flex-col items-center justify-center space-y-10 text-white uppercase tracking-[0.2em] font-light transition-transform duration-500 ease-in-out md:hidden ${
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        {/* Header du menu mobile (croix + logo) */}
         <div className="absolute top-0 left-0 w-full flex justify-between items-center px-6 py-8">
-          
           <div className="flex items-center flex-1">
             <button 
               type="button"
@@ -128,21 +164,14 @@ export default function Navbar() {
               <X size={24} /> 
             </button>
           </div>
-
           <div className="flex justify-center flex-1">
             <Link href="/" onClick={() => setIsMobileMenuOpen(false)}>
-              <img
-                src="/images/logo.svg"
-                alt="Shad's Candle"
-                className="h-16 w-auto block" 
-              />
+              <img src="/images/logo.svg" alt="Shad's Candle" className="h-16 w-auto block" />
             </Link>
           </div>
-
           <div className="flex-1"></div>
         </div>
 
-        {/* Liens de navigation */}
         <Link href="/produits" className="text-xl hover:opacity-60 transition duration-300" onClick={() => setIsMobileMenuOpen(false)}>Produits</Link>
         <Link href="/a-propos" className="text-xl hover:opacity-60 transition duration-300" onClick={() => setIsMobileMenuOpen(false)}>À Propos</Link>
         <Link href="/contact" className="text-xl hover:opacity-60 transition duration-300" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
