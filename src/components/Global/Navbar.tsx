@@ -17,6 +17,7 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
+  const prevPathname = useRef(pathname);
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -26,7 +27,10 @@ export default function Navbar() {
   };
 
   useEffect(() => {
-    setIsMobileMenuOpen(false);
+    if (prevPathname.current !== pathname) {
+      setIsMobileMenuOpen(false);
+      prevPathname.current = pathname;
+    }
   }, [pathname]);
 
   useEffect(() => {
@@ -59,7 +63,6 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  // Position initiale homepage = transparent, sinon toujours fond
   const isTransparent = isHome && !isScrolled;
 
   const navClasses = [
