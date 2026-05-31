@@ -70,9 +70,9 @@ export default function Navbar() {
 
         <div className="flex justify-end md:justify-center items-center gap-4 md:gap-6 flex-1 md:flex-none">
 
-          <button className="flex items-center justify-center hover:opacity-60 transition duration-300">
+          <Link href="/search" className="flex items-center justify-center hover:opacity-60 transition duration-300">
             <Search size={20} />
-          </button>
+          </Link>
 
           <div className="relative group flex items-center justify-center">
             {isLogged ? (
