@@ -17,7 +17,13 @@ export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollY = useRef(0);
-  const prevPathname = useRef(pathname);
+
+  // Fermer le menu mobile au changement de page
+  const [prevPath, setPrevPath] = useState(pathname);
+  if (pathname !== prevPath) {
+    setPrevPath(pathname);
+    setIsMobileMenuOpen(false);
+  }
 
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -25,13 +31,6 @@ export default function Navbar() {
     e.preventDefault();
     authService.logout();
   };
-
-  useEffect(() => {
-    if (prevPathname.current !== pathname) {
-      setIsMobileMenuOpen(false);
-      prevPathname.current = pathname;
-    }
-  }, [pathname]);
 
   useEffect(() => {
     if (isMobileMenuOpen) {
