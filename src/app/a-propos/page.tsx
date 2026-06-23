@@ -1,6 +1,7 @@
 import Link from "next/link";
 import AboutValues from "../../components/About/AboutValues";
 import ReassuranceSection from "../../components/Global/ReassuranceSection";
+import Image from "next/image";
 
 export default function AboutPage() {
   return (
@@ -25,10 +26,12 @@ export default function AboutPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-16 items-center">
             {/* Image moins haute sur mobile avec aspect-[4/3] */}
             <div className="w-full h-auto aspect-[4/3] md:aspect-square bg-stone-200 rounded-sm overflow-hidden shadow-sm">
-              <img 
-                src="/images/histoire.png" 
-                alt="Notre histoire" 
-                className="w-full h-full object-cover" 
+              <Image
+                src="/images/histoire.png"
+                alt="Notre histoire"
+                className="w-full h-full object-cover"
+                width={731}
+                height={829}
               />
             </div>
 
@@ -103,10 +106,12 @@ export default function AboutPage() {
             </div>
 
             <div className="rounded-sm overflow-hidden shadow-sm aspect-[4/3] md:aspect-square lg:aspect-[4/3] order-1 md:order-2">
-              <img 
-                src="/images/histoire.png" 
-                alt="Bougies Shad's Candle ambiance cocooning" 
-                className="w-full h-full object-cover" 
+              <Image
+                src="/images/histoire.png"
+                alt="Bougies Shad's Candle ambiance cocooning"
+                className="w-full h-full object-cover"
+                width={731}
+                height={829}
               />
             </div>
 
