@@ -1,12 +1,14 @@
-
+import Image from 'next/image'
 
 export default function HeroSection() {
   return (
     <section className="relative z-0 w-full h-[100svh] flex items-center justify-center overflow-hidden">
-      <img
+      <Image
         src="/images/herosection.png"
         alt="Ambiance Bougie"
-        className="absolute inset-0 w-full h-full object-cover pointer-events-none"
+        fill
+        priority
+        className="absolute inset-0 object-cover pointer-events-none"
       />
       <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>
       <div className="relative z-10 text-center text-white px-4 animate-fade-in-up">

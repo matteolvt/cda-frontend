@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export default function CategorySection() {
   return (
@@ -7,7 +8,7 @@ export default function CategorySection() {
         
         {/* BOUGIES PARFUMÉES */}
         <Link href="/produits?category=parfumees" className="relative w-full h-[350px] md:max-w-[731px] md:h-[829px] overflow-hidden group cursor-pointer block">
-          <img src="/images/bougiesParf.png" alt="Bougies parfumées" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <Image src="/images/bougiesParf.png" alt="Bougies parfumées" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" width={731} height={829} />
           <div className="absolute inset-0 bg-black/20 transition-opacity group-hover:bg-black/30"></div>
           
           <div className="absolute inset-0 flex flex-col items-center justify-start pt-8 md:pt-16 text-center text-[#FDFBF7] px-2 md:px-6">
@@ -22,7 +23,7 @@ export default function CategorySection() {
 
         {/* BOUGIES MOULÉES */}
         <Link href="/produits?category=moulees" className="relative w-full h-[350px] md:max-w-[731px] md:h-[829px] overflow-hidden group cursor-pointer block">
-          <img src="/images/bougiesMoul.png" alt="Bougies moulées" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
+          <Image src="/images/bougiesMoul.png" alt="Bougies moulées" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" width={731} height={829} />
           <div className="absolute inset-0 bg-black/20 transition-opacity group-hover:bg-black/30"></div>
           
           <div className="absolute inset-0 flex flex-col items-center justify-start pt-8 md:pt-16 text-center text-[#FDFBF7] px-2 md:px-6">

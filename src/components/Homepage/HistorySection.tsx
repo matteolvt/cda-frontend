@@ -1,9 +1,11 @@
+import Image from 'next/image'
+
 export default function HistorySection() {
   return (
     <section className="bg-[#EFDDD1] pt-[140px] pb-24 px-4">
       <div className="w-full max-w-[1542px] mx-auto flex flex-col md:flex-row items-center gap-[80px]">
         <div className="w-full md:w-1/2">
-          <img src="/images/histoire.png" alt="Notre histoire" className="w-full h-auto object-cover shadow-sm" />
+          <Image src="/images/histoire.png" alt="Notre histoire" className="w-full h-auto object-cover shadow-sm" width={500} height={300} />
         </div>
         <div className="w-full md:w-1/2 text-stone-900">
           <h2 className="font-serif text-3xl md:text-4xl font-bold mb-8 text-black">Notre Histoire, vos bougies.</h2>
