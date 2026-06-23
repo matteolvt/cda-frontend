@@ -14,12 +14,12 @@ export default function Footer() {
             <a href="#" className="w-10 h-10 border border-stone-800 rounded-full flex items-center justify-center text-stone-800 hover:bg-stone-800 hover:text-white transition-colors">
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>
             </a>
-            <a href="#" className="w-10 h-10 border border-stone-800 rounded-full flex items-center justify-center text-stone-800 hover:bg-stone-800 hover:text-white transition-colors">
+            {/* <a href="#" className="w-10 h-10 border border-stone-800 rounded-full flex items-center justify-center text-stone-800 hover:bg-stone-800 hover:text-white transition-colors">
                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
             </a>
             <a href="#" className="w-10 h-10 border border-stone-800 rounded-full flex items-center justify-center text-stone-800 hover:bg-stone-800 hover:text-white transition-colors">
                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="17" y2="22"/><path d="M5 17h14v-1.76a2 2 0 0 0-1.11-1.79l-1.78-.9A2 2 0 0 1 15 10.76V6h1a2 2 0 0 0 0-4H8a2 2 0 0 0 0 4h1v4.76a2 2 0 0 1-1.11 1.79l-1.78.9A2 2 0 0 0 5 15.24Z"/></svg>
-            </a>
+            </a> */}
           </div>
 
           {/* Nos Produits */}

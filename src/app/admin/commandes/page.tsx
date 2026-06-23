@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Search, Eye } from "lucide-react";
+import { Search, Eye, Package } from "lucide-react";
 import { API_URL } from "@/lib/api";
 
 interface OrderDetail {
@@ -16,6 +16,7 @@ interface UserDetail {
   email: string;
   firstname: string;
   lastname: string;
+  phone: string | null;
 }
 
 interface Order {
@@ -24,6 +25,9 @@ interface Order {
   date: string;
   paid: boolean;
   address: string;
+  city: string | null;
+  zip_code: string | null;
+  country: string;
   details: OrderDetail[];
   user: number;
   user_detail?: UserDetail;
@@ -34,6 +38,8 @@ export default function AdminCommandesPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [labelLoading, setLabelLoading] = useState<number | null>(null);
+  const [labelError, setLabelError] = useState<string | null>(null);
 
   const token = typeof window !== "undefined" ? localStorage.getItem("access_token") : "";
 
@@ -55,6 +61,52 @@ export default function AdminCommandesPage() {
     fetchOrders();
   }, []);
 
+  const generateLabel = async (order: Order) => {
+    setLabelLoading(order.order_id);
+    setLabelError(null);
+
+    const payload = {
+      recipient: {
+        firstName: order.user_detail?.firstname || "",
+        lastName: order.user_detail?.lastname || "",
+        email: order.user_detail?.email || "",
+        phone: order.user_detail?.phone || "",
+        address: order.address || "",
+        city: order.city || "",
+        zipCode: order.zip_code || "",
+        country: order.country || "FR",
+      },
+      shipment_id: 8, // 8 = test (Unstamped letter) — remplacer par l'ID réel en prod
+    };
+
+    try {
+      const res = await fetch(`${API_URL}/orders/${order.order_id}/shipping/`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || err.error || "Erreur lors de la génération du bordereau");
+      }
+
+      const data = await res.json();
+      if (data.pdf_url) {
+        window.open(data.pdf_url, "_blank");
+      } else {
+        throw new Error("Lien PDF manquant dans la réponse");
+      }
+    } catch (e: unknown) {
+      setLabelError(e instanceof Error ? e.message : "Erreur inconnue");
+    } finally {
+      setLabelLoading(null);
+    }
+  };
+
   const capitalize = (str: string) =>
     str ? str.charAt(0).toUpperCase() + str.slice(1).toLowerCase() : "";
 
@@ -67,20 +119,29 @@ export default function AdminCommandesPage() {
       o.user_detail?.lastname.toLowerCase().includes(search.toLowerCase())
   );
 
-  const sorted = [...filtered].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  const sorted = [...filtered].sort(
+    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
 
-  const formatPrice = (cents: number) => (Number(cents) / 100).toFixed(2).replace(".", ",");
-  const orderTotal = (order: Order) => (order.details || []).reduce((acc, d) => acc + Number(d.total), 0);
+  const formatPrice = (cents: number) =>
+    (Number(cents) / 100).toFixed(2).replace(".", ",");
+  const orderTotal = (order: Order) =>
+    (order.details || []).reduce((acc, d) => acc + Number(d.total), 0);
 
   return (
     <div className="space-y-6">
-
       <div>
         <h1 className="text-2xl font-serif text-gray-900">Commandes</h1>
         <p className="text-xs text-gray-400 uppercase tracking-widest mt-1">
           {orders.length} commande{orders.length > 1 ? "s" : ""}
         </p>
       </div>
+
+      {labelError && (
+        <div className="px-4 py-3 bg-red-50 border border-red-200 text-red-600 text-xs">
+          {labelError}
+        </div>
+      )}
 
       <div className="relative">
         <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -96,22 +157,22 @@ export default function AdminCommandesPage() {
       <div className="bg-white border border-gray-100 shadow-sm">
         {isLoading ? (
           <div className="px-6 py-12 text-center">
-            <p className="text-gray-400 text-xs uppercase tracking-widest animate-pulse">Chargement...</p>
+            <p className="text-gray-400 text-xs uppercase tracking-widest animate-pulse">
+              Chargement...
+            </p>
           </div>
         ) : filtered.length === 0 ? (
           <div className="px-6 py-12 text-center">
-            <p className="text-gray-400 text-xs uppercase tracking-widest">Aucune commande</p>
+            <p className="text-gray-400 text-xs uppercase tracking-widest">
+              Aucune commande
+            </p>
           </div>
         ) : (
           <>
             {/* Mobile : cartes */}
             <div className="md:hidden divide-y divide-gray-50">
               {sorted.map((order) => (
-                <button
-                  key={order.order_id}
-                  onClick={() => setSelectedOrder(order)}
-                  className="w-full p-4 text-left space-y-2 hover:bg-gray-50 transition-colors"
-                >
+                <div key={order.order_id} className="p-4 space-y-2">
                   <div className="flex items-center justify-between">
                     <p className="text-xs font-medium text-gray-900 uppercase tracking-widest">
                       #{order.reference}
@@ -124,7 +185,8 @@ export default function AdminCommandesPage() {
                   </div>
                   {order.user_detail && (
                     <p className="text-xs text-gray-500">
-                      {capitalize(order.user_detail.firstname)} {capitalize(order.user_detail.lastname)}
+                      {capitalize(order.user_detail.firstname)}{" "}
+                      {capitalize(order.user_detail.lastname)}
                     </p>
                   )}
                   <div className="flex items-center justify-between">
@@ -135,7 +197,24 @@ export default function AdminCommandesPage() {
                       {formatPrice(orderTotal(order))} €
                     </p>
                   </div>
-                </button>
+                  <div className="flex gap-2 pt-1">
+                    <button
+                      onClick={() => setSelectedOrder(order)}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400 transition-colors"
+                    >
+                      <Eye size={12} />
+                      Voir
+                    </button>
+                    <button
+                      onClick={() => generateLabel(order)}
+                      disabled={labelLoading === order.order_id}
+                      className="flex items-center gap-1.5 px-3 py-1.5 text-[10px] uppercase tracking-widest border border-gray-200 text-gray-500 hover:text-gray-900 hover:border-gray-400 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <Package size={12} />
+                      {labelLoading === order.order_id ? "Génération..." : "Étiquette"}
+                    </button>
+                  </div>
+                </div>
               ))}
             </div>
 
@@ -164,7 +243,8 @@ export default function AdminCommandesPage() {
                       {order.user_detail ? (
                         <div>
                           <p className="text-xs text-gray-900">
-                            {capitalize(order.user_detail.firstname)} {capitalize(order.user_detail.lastname)}
+                            {capitalize(order.user_detail.firstname)}{" "}
+                            {capitalize(order.user_detail.lastname)}
                           </p>
                           <p className="text-[10px] text-gray-400">{order.user_detail.email}</p>
                         </div>
@@ -195,12 +275,24 @@ export default function AdminCommandesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <div className="flex justify-end">
+                      <div className="flex justify-end items-center gap-2">
                         <button
                           onClick={() => setSelectedOrder(order)}
                           className="p-2 text-gray-400 hover:text-gray-900 transition-colors"
+                          title="Voir le détail"
                         >
                           <Eye size={16} />
+                        </button>
+                        <button
+                          onClick={() => generateLabel(order)}
+                          disabled={labelLoading === order.order_id}
+                          className="p-2 text-gray-400 hover:text-gray-900 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                          title="Générer étiquette Sendcloud"
+                        >
+                          <Package
+                            size={16}
+                            className={labelLoading === order.order_id ? "animate-pulse" : ""}
+                          />
                         </button>
                       </div>
                     </td>
@@ -224,7 +316,6 @@ export default function AdminCommandesPage() {
             </div>
 
             <div className="p-6 space-y-6">
-
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Date</p>
@@ -244,9 +335,13 @@ export default function AdminCommandesPage() {
                 <div className="bg-gray-50 p-4 space-y-1">
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-2">Client</p>
                   <p className="text-sm text-gray-900 font-medium">
-                    {capitalize(selectedOrder.user_detail.firstname)} {capitalize(selectedOrder.user_detail.lastname)}
+                    {capitalize(selectedOrder.user_detail.firstname)}{" "}
+                    {capitalize(selectedOrder.user_detail.lastname)}
                   </p>
                   <p className="text-xs text-gray-500">{selectedOrder.user_detail.email}</p>
+                  {selectedOrder.user_detail.phone && (
+                    <p className="text-xs text-gray-500">{selectedOrder.user_detail.phone}</p>
+                  )}
                 </div>
               )}
 
@@ -254,6 +349,11 @@ export default function AdminCommandesPage() {
                 <div>
                   <p className="text-[10px] uppercase tracking-widest text-gray-400 mb-1">Adresse de livraison</p>
                   <p className="text-sm text-gray-900">{selectedOrder.address}</p>
+                  {(selectedOrder.zip_code || selectedOrder.city) && (
+                    <p className="text-sm text-gray-900">
+                      {selectedOrder.zip_code} {selectedOrder.city}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -283,11 +383,20 @@ export default function AdminCommandesPage() {
                 </p>
               </div>
 
+              <button
+                onClick={() => generateLabel(selectedOrder)}
+                disabled={labelLoading === selectedOrder.order_id}
+                className="w-full flex items-center justify-center gap-2 py-3 border border-gray-900 text-gray-900 text-[10px] uppercase tracking-widest hover:bg-gray-900 hover:text-white transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <Package size={14} />
+                {labelLoading === selectedOrder.order_id
+                  ? "Génération en cours..."
+                  : "Générer l'étiquette d'envoi"}
+              </button>
             </div>
           </div>
         </div>
       )}
-
     </div>
   );
 }

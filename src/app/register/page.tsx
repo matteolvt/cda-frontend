@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
+  const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -37,10 +38,10 @@ export default function RegisterPage() {
         firstname,
         lastname,
         email,
+        phone,
         password,
       });
       window.location.href = "/";
-      
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Une erreur est survenue lors de l'inscription.");
     } finally {
@@ -50,14 +51,11 @@ export default function RegisterPage() {
 
   return (
     <>
-      {/* Modification ici : h-[120px] sur mobile, md:h-[208px] sur ordi */}
       <div className="w-full h-[120px] md:h-[208px] bg-[#FDFBF7]"></div>
 
-      {/* Ajustement du padding vertical (py-10 au lieu de py-20 sur mobile) */}
       <section className="bg-[#EFDDD1] min-h-[calc(100vh-140px)] flex items-center justify-center py-10 md:py-20 px-4">
-        {/* Ajustement du padding intérieur de la carte (p-6 sur mobile) */}
         <div className="bg-white w-full max-w-[500px] p-6 sm:p-10 md:p-16 shadow-sm">
-          
+
           <div className="text-center mb-8 md:mb-12">
             <h1 className="font-serif text-2xl md:text-4xl text-stone-900 uppercase tracking-[0.2em] mb-3 md:mb-4">
               Inscription
@@ -74,7 +72,6 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-5 md:space-y-6">
-            {/* Grille sur 1 colonne pour mobile, 2 colonnes pour tablette/ordi */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
@@ -117,6 +114,20 @@ export default function RegisterPage() {
 
             <div className="space-y-2">
               <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
+                Téléphone
+              </label>
+              <input
+                type="tel"
+                required
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="0612345678"
+                className="w-full bg-[#FDFBF7] border border-stone-200 px-4 py-3 md:py-4 text-sm outline-none focus:border-stone-900 transition-colors placeholder-stone-300 font-light"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-[10px] uppercase tracking-widest font-bold text-stone-400">
                 Mot de passe
               </label>
               <div className="relative">
@@ -134,11 +145,7 @@ export default function RegisterPage() {
                   onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors focus:outline-none z-10 cursor-pointer p-1"
                 >
-                  {showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
               <p className="text-[8px] md:text-[9px] text-stone-400 mt-1 uppercase tracking-widest leading-relaxed">
