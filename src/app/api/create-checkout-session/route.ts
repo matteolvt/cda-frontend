@@ -50,8 +50,9 @@ export async function POST(req: NextRequest) {
     }));
 
     const addr = address as Address | undefined;
+
     const formattedAddress = addr
-      ? `${addr.address}${addr.addressComplement ? ", " + addr.addressComplement : ""}, ${addr.postalCode} ${addr.city}, ${addr.country}`
+      ? `${addr.address}${addr.addressComplement ? ", " + addr.addressComplement : ""}`
       : "";
 
     const session = await stripe.checkout.sessions.create({
@@ -69,6 +70,9 @@ export async function POST(req: NextRequest) {
           }))
         ),
         address: formattedAddress,
+        city: addr?.city || "",
+        zip_code: addr?.postalCode || "",
+        country: addr?.country || "FR",
       },
     });
 

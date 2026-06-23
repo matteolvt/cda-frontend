@@ -6,6 +6,7 @@ import { useCart } from "@/context/CartContext";
 import { authService } from "@/services/auth";
 import { useState, useEffect, useRef } from "react";
 import { Menu, X, Search, User, UserCheck, ShoppingCart } from "lucide-react";
+import Images from "next/image"
 
 export default function Navbar() {
   const pathname = usePathname();

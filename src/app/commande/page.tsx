@@ -2,7 +2,15 @@
 
 import { useCart } from "@/context/CartContext";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
+
+interface AddressSuggestion {
+  label: string;
+  housenumber: string;
+  street: string;
+  city: string;
+  postcode: string;
+}
 
 export default function CommandePage() {
   const { cart, isLogged } = useCart();
@@ -18,8 +26,14 @@ export default function CommandePage() {
     addressComplement: "",
     city: "",
     postalCode: "",
-    country: "France",
+    country: "FR",
   });
+
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [addressInput, setAddressInput] = useState("");
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const suggestionsRef = useRef<HTMLDivElement>(null);
 
   const displayTotal = cart.reduce(
     (acc, item) => acc + (item.product.price / 100) * item.quantity,
@@ -27,13 +41,70 @@ export default function CommandePage() {
   );
 
   useEffect(() => {
-    if (!isLogged) {
-      router.push("/login?redirect=/commande");
-    }
-    if (cart.length === 0) {
-      router.push("/panier");
-    }
+    if (!isLogged) router.push("/login?redirect=/commande");
+    if (cart.length === 0) router.push("/panier");
   }, [isLogged, cart, router]);
+
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target as Node)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const fetchSuggestions = useCallback(async (query: string) => {
+    if (query.length < 3) {
+      setSuggestions([]);
+      return;
+    }
+    try {
+      const res = await fetch(
+        `https://api-adresse.data.gouv.fr/search/?q=${encodeURIComponent(query)}&limit=6&autocomplete=1`
+      );
+      const data = await res.json();
+      const results: AddressSuggestion[] = (data.features || []).map(
+        (f: { properties: { label: string; housenumber: string; street: string; city: string; postcode: string } }) => ({
+          label: f.properties.label,
+          housenumber: f.properties.housenumber || "",
+          street: f.properties.street || "",
+          city: f.properties.city || "",
+          postcode: f.properties.postcode || "",
+        })
+      );
+      setSuggestions(results);
+      setShowSuggestions(results.length > 0);
+    } catch {
+      setSuggestions([]);
+    }
+  }, []);
+
+  const handleAddressInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setAddressInput(value);
+    setForm((prev) => ({ ...prev, address: value }));
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => fetchSuggestions(value), 300);
+  };
+
+  const handleSelectSuggestion = (suggestion: AddressSuggestion) => {
+    const streetAddress = suggestion.housenumber
+      ? `${suggestion.housenumber} ${suggestion.street}`
+      : suggestion.street || suggestion.label;
+
+    setAddressInput(streetAddress);
+    setForm((prev) => ({
+      ...prev,
+      address: streetAddress,
+      city: suggestion.city,
+      postalCode: suggestion.postcode,
+    }));
+    setSuggestions([]);
+    setShowSuggestions(false);
+  };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -77,7 +148,6 @@ export default function CommandePage() {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
 
-            {/* Formulaire */}
             <form onSubmit={handleSubmit} className="bg-white p-5 md:p-8 shadow-sm border border-[#EFDDD1]">
               <h2 className="text-[10px] md:text-xs uppercase tracking-widest text-stone-400 mb-6 md:mb-8">
                 Adresse de livraison
@@ -103,10 +173,34 @@ export default function CommandePage() {
                     className="w-full border border-stone-200 bg-[#FDFBF7] px-3 md:px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900 transition-colors" />
                 </div>
 
-                <div>
+                {/* Adresse avec autocomplétion */}
+                <div className="relative" ref={suggestionsRef}>
                   <label className="block text-[10px] uppercase tracking-widest text-stone-400 mb-2">Adresse</label>
-                  <input type="text" name="address" required value={form.address} onChange={handleChange}
-                    className="w-full border border-stone-200 bg-[#FDFBF7] px-3 md:px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900 transition-colors" />
+                  <input
+                    type="text"
+                    name="address"
+                    required
+                    autoComplete="off"
+                    value={addressInput}
+                    onChange={handleAddressInput}
+                    onFocus={() => suggestions.length > 0 && setShowSuggestions(true)}
+                    className="w-full border border-stone-200 bg-[#FDFBF7] px-3 md:px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900 transition-colors"
+                  />
+                  {showSuggestions && suggestions.length > 0 && (
+                    <ul className="absolute z-50 w-full bg-white border border-stone-200 shadow-md mt-0.5 divide-y divide-stone-100">
+                      {suggestions.map((s, i) => (
+                        <li key={i}>
+                          <button
+                            type="button"
+                            onClick={() => handleSelectSuggestion(s)}
+                            className="w-full text-left px-4 py-3 text-sm text-stone-900 hover:bg-[#FDFBF7] transition-colors"
+                          >
+                            {s.label}
+                          </button>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </div>
 
                 <div>
@@ -133,8 +227,12 @@ export default function CommandePage() {
 
                 <div>
                   <label className="block text-[10px] uppercase tracking-widest text-stone-400 mb-2">Pays</label>
-                  <input type="text" name="country" required value={form.country} onChange={handleChange}
-                    className="w-full border border-stone-200 bg-[#FDFBF7] px-3 md:px-4 py-3 text-sm text-stone-900 focus:outline-none focus:border-stone-900 transition-colors" />
+                  <input
+                    type="text"
+                    value="France"
+                    disabled
+                    className="w-full border border-stone-200 bg-stone-50 px-3 md:px-4 py-3 text-sm text-stone-400 cursor-not-allowed"
+                  />
                 </div>
 
                 {error && (
