@@ -141,7 +141,7 @@ export default function ProductDetailPage() {
                 )}
               </div>
 
-              {productImages.length > 1 && (
+              {/* {productImages.length > 1 && (
                 <div className="grid grid-cols-6 gap-3">
                   {productImages.map((img, idx) => (
                     <button key={idx} onClick={() => setCurrentImageIndex(idx)} className={`aspect-square bg-white overflow-hidden border transition-all ${idx === currentImageIndex ? 'border-stone-900 opacity-100' : 'border-transparent opacity-70 hover:opacity-100'}`}>
@@ -149,7 +149,7 @@ export default function ProductDetailPage() {
                     </button>
                   ))}
                 </div>
-              )}
+              )} */}
             </div>
 
             <div className="flex flex-col pt-0 lg:pt-4">
